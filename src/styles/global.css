@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand: near-black surfaces, champagne accent, light-weight Cormorant display.
+   Dark is the default theme — the light block is the same palette inverted, so
+   the toggle stays on-brand. Motion easings from Shirone's M3E token layer. */
+@theme {
+	--font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+	--text-display: clamp(3rem, 5vw + 1rem, 5.5rem);
+	--text-display--line-height: 1.02;
+
+	--color-paper: oklch(97% 0.006 85);
+	--color-paper-2: oklch(94.5% 0.008 85);
+	--color-rule: oklch(87% 0.008 80);
+	--color-muted: oklch(48% 0.012 70);
+	--color-ink: oklch(18% 0.01 70);
+	--color-accent: oklch(52% 0.075 80);
+	--color-focus: oklch(50% 0.08 80);
+	--color-on-accent: oklch(97% 0.01 85);
+
+	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
+	--ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+
+/* The brand theme. Chroma stays low on the neutrals — colour lives in the photos. */
+.dark {
+	--color-paper: oklch(14% 0.006 60);
+	--color-paper-2: oklch(17.5% 0.008 60);
+	--color-rule: oklch(27% 0.008 60);
+	--color-muted: oklch(70% 0.012 75);
+	--color-ink: oklch(95% 0.008 85);
+	--color-accent: oklch(80% 0.085 85);
+	--color-focus: oklch(82% 0.09 85);
+	--color-on-accent: oklch(15% 0.012 60);
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+		scrollbar-gutter: stable;
+		/* Sticky header height — keeps anchor targets clear of it. */
+		scroll-padding-top: 5rem;
+	}
+	body {
+		@apply bg-paper font-sans text-ink antialiased;
+		/* Faint accent halo behind the hero so the flat near-black has depth. */
+		background-image: radial-gradient(
+			60rem 32rem at 50% -10rem,
+			color-mix(in oklab, var(--color-accent) 10%, transparent),
+			transparent 70%
+		);
+		background-repeat: no-repeat;
+	}
+	/* Lock page scroll while the gallery lightbox is open. */
+	body:has(dialog[open]) {
+		overflow: hidden;
+	}
+	.font-display {
+		font-weight: 300;
+		letter-spacing: -0.005em;
+		line-height: 1.05;
+	}
+	/* Photo finish — a touch more contrast and colour so the phone-shot
+	   interiors hold their own against the near-black page. */
+	.photo {
+		filter: contrast(1.05) saturate(1.08);
+	}
+	.dark .photo {
+		filter: contrast(1.07) saturate(1.08) brightness(0.96);
+	}
+	/* Small-caps label above a section heading. */
+	.eyebrow {
+		@apply text-xs font-medium tracking-[0.22em] text-accent uppercase;
+	}
+	::selection {
+		background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+	}
+}

@@ -1,0 +1,513 @@
+---
+/**
+ * Timeline — port of Shirone's TimelineSection + TimelineCard + filter Chips
+ * (Svelte/Stylus, M3E tokens) to a static Astro component on the paper/ink
+ * palette. Filtering and the reveal-on-scroll are ~30 lines of vanilla JS.
+ */
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import type { Category, TimelineItem } from "../content";
+
+interface Props {
+	items: TimelineItem[];
+	categories: Category[];
+	title: string;
+	subtitle?: string;
+	id?: string;
+}
+
+const { items, categories, title, subtitle, id = "timeline" } = Astro.props;
+const byKey = new Map(categories.map((c) => [c.key, c]));
+const active = categories.filter((c) => items.some((i) => i.category === c.key));
+---
+
+<section id={id} class="timeline mx-auto max-w-screen-lg px-4 md:px-8">
+	<div class="rounded-2xl border border-rule bg-paper-2 px-4 py-6 sm:px-8 sm:py-8">
+		<header class="mb-6 border-b border-rule pb-5">
+			<div class="flex items-center gap-3">
+				<Icon name="material-symbols:timeline" class="size-8 shrink-0 text-accent" aria-hidden="true" />
+				<h2 class="font-display text-3xl md:text-4xl">{title}</h2>
+			</div>
+			{subtitle && <p class="mt-2 text-sm text-muted md:text-base">{subtitle}</p>}
+
+			{
+				active.length > 1 && (
+					<div class="mt-5 flex flex-wrap gap-2" role="group" aria-label="Ангилалаар шүүх">
+						<button type="button" class="chip" data-cat="" aria-pressed="true">
+							<Icon name="material-symbols:check-rounded" class="check size-[18px]" aria-hidden="true" />
+							Бүгд
+						</button>
+						{active.map((c) => (
+							<button type="button" class="chip" data-cat={c.key} aria-pressed="false">
+								<Icon name="material-symbols:check-rounded" class="check size-[18px]" aria-hidden="true" />
+								<Icon name={c.icon} class="lead size-[18px]" aria-hidden="true" />
+								{c.label}
+							</button>
+						))}
+					</div>
+				)
+			}
+			<p class="mt-3 text-xs text-muted"><span data-count>{items.length}</span> ажил</p>
+		</header>
+
+		<div class="list" aria-live="polite">
+			{
+				items.map((item, i) => {
+					const cat = item.category ? byKey.get(item.category) : undefined;
+					const marker = item.icon ?? cat?.icon ?? "material-symbols:flag-rounded";
+					return (
+						<article
+							class:list={["card", { "card--featured": item.featured, "card--last": i === items.length - 1 }]}
+							data-cat={item.category ?? ""}
+							style={`--delay: ${Math.min(i, 7) * 45}ms`}
+						>
+							<div class="rail" aria-hidden="true">
+								<div class="track" />
+								<div class="marker">
+									<Icon name={marker} class="size-5 max-sm:size-4" />
+								</div>
+							</div>
+
+							<div class="body">
+								<div class="meta">
+									<time class="date">{item.date}</time>
+									{cat && (
+										<span class="category">
+											<Icon name={cat.icon} class="size-3.5" aria-hidden="true" />
+											{cat.label}
+										</span>
+									)}
+									{item.featured && (
+										<span class="pill">
+											<Icon name="material-symbols:star-rounded" class="size-3.5" aria-hidden="true" />
+											Онцлох
+										</span>
+									)}
+								</div>
+
+								<div class="heading">
+									<h3 class="title">{item.title}</h3>
+									{(item.subtitle || item.location) && (
+										<div class="sub">
+											{item.subtitle && (
+												<span>
+													<Icon name="material-symbols:domain-rounded" class="size-3.5" aria-hidden="true" />
+													{item.subtitle}
+												</span>
+											)}
+											{item.location && (
+												<span>
+													<Icon name="material-symbols:location-on-outline-rounded" class="size-3.5" aria-hidden="true" />
+													{item.location}
+												</span>
+											)}
+										</div>
+									)}
+								</div>
+
+								{item.images && item.images.length > 0 && (
+								<div class="shots">
+									{item.images.map((img, n) => (
+										<span class="shot">
+											<Image
+												src={img}
+												widths={[240, 480].filter((w) => w < img.width)}
+												sizes="(max-width: 640px) 45vw, 15rem"
+												alt={`${item.title} — ${n + 1}`}
+												loading="lazy"
+												class="photo"
+											/>
+										</span>
+									))}
+								</div>
+							)}
+
+							{item.description && <p class="desc">{item.description}</p>}
+
+								{item.highlights && item.highlights.length > 0 && (
+									<ul class="highlights">{item.highlights.map((h) => <li>{h}</li>)}</ul>
+								)}
+
+								{item.tags && item.tags.length > 0 && (
+									<ul class="tags" aria-label="Материал">{item.tags.map((t) => <li>{t}</li>)}</ul>
+								)}
+
+								{item.links && item.links.length > 0 && (
+									<div class="actions">
+										{item.links.map((l) => (
+											<a href={l.url} target="_blank" rel="noopener noreferrer" class="link">
+												<Icon name={l.icon ?? "material-symbols:open-in-new-rounded"} class="size-4" aria-hidden="true" />
+												{l.label}
+											</a>
+										))}
+									</div>
+								)}
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+		<p class="empty py-10 text-center text-sm text-muted" hidden>Энэ ангилалд ажил алга.</p>
+	</div>
+</section>
+
+<style>
+	/* === filter chips (Shirone Chips.svelte, filter variant) === */
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		height: 2rem;
+		padding: 0 1rem;
+		border: 1px solid var(--color-rule);
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--color-muted);
+		cursor: pointer;
+		user-select: none;
+		transition:
+			background-color 150ms var(--ease-standard),
+			color 150ms var(--ease-standard),
+			border-color 150ms var(--ease-standard);
+	}
+	.chip:hover {
+		background: color-mix(in oklab, var(--color-ink) 6%, transparent);
+	}
+	.chip:focus-visible {
+		outline: 2px solid var(--color-focus);
+		outline-offset: 2px;
+	}
+	.chip[aria-pressed="true"] {
+		background: color-mix(in oklab, var(--color-accent) 16%, transparent);
+		border-color: transparent;
+		color: var(--color-accent);
+	}
+	.chip :global(.check),
+	.chip[aria-pressed="true"] :global(.lead) {
+		display: none;
+	}
+	.chip[aria-pressed="true"] :global(.check) {
+		display: block;
+	}
+
+	/* === card: rail + marker + body (Shirone TimelineCard.svelte) === */
+	.card {
+		position: relative;
+		display: flex;
+		gap: 1.25rem;
+		min-width: 0;
+		transition:
+			opacity 400ms var(--ease-emphasized) var(--delay),
+			transform 400ms var(--ease-emphasized) var(--delay);
+	}
+	.card.reveal:not(.is-visible) {
+		opacity: 0;
+		transform: translateY(1rem);
+	}
+	@media print {
+		/* Cards below the fold never intersect, so un-hide them for print. */
+		.card.reveal {
+			opacity: 1 !important;
+			transform: none !important;
+		}
+	}
+	.rail {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		flex-shrink: 0;
+		width: 2.75rem;
+	}
+	.track {
+		position: absolute;
+		top: 0;
+		bottom: -1.5rem;
+		left: 50%;
+		width: 2px;
+		transform: translateX(-50%);
+		background: var(--color-rule);
+	}
+	.card--last .track {
+		bottom: auto;
+		height: 1.5rem;
+	}
+	.marker {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		margin-top: 0.25rem;
+		border: 2px solid var(--color-rule);
+		border-radius: 9999px;
+		background: var(--color-paper);
+		color: var(--color-muted);
+		box-shadow: 0 0 0 4px var(--color-paper-2);
+		transition:
+			transform 250ms var(--ease-emphasized),
+			border-color 250ms var(--ease-standard),
+			color 250ms var(--ease-standard),
+			box-shadow 250ms var(--ease-standard);
+	}
+	.card--featured .marker {
+		border-color: var(--color-accent);
+		background: color-mix(in oklab, var(--color-accent) 18%, var(--color-paper));
+		color: var(--color-accent);
+		box-shadow:
+			0 0 0 4px var(--color-paper-2),
+			0 0 0 6px color-mix(in oklab, var(--color-accent) 22%, transparent);
+	}
+	.card:hover .marker {
+		transform: scale(1.12);
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+	.body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 0.75rem;
+		min-width: 0;
+		margin-bottom: 1.5rem;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid var(--color-rule);
+		border-radius: 1rem;
+		background: var(--color-paper);
+		transition:
+			border-color 250ms var(--ease-emphasized),
+			box-shadow 250ms var(--ease-emphasized);
+	}
+	.card:hover .body {
+		border-color: var(--color-muted);
+		box-shadow:
+			0 1px 2px color-mix(in oklab, var(--color-ink) 8%, transparent),
+			0 2px 6px 1px color-mix(in oklab, var(--color-ink) 6%, transparent);
+	}
+	.card--featured .body {
+		border-color: color-mix(in oklab, var(--color-accent) 45%, var(--color-rule));
+	}
+	.card--featured:hover .body {
+		border-color: var(--color-accent);
+	}
+	@media (max-width: 639px) {
+		.card {
+			gap: 0.75rem;
+		}
+		.rail,
+		.marker {
+			width: 2rem;
+		}
+		.marker {
+			height: 2rem;
+		}
+		.body {
+			margin-bottom: 1rem;
+			padding: 1rem;
+		}
+	}
+
+	/* === body content === */
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.date {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.125rem 0.625rem;
+		border-radius: 9999px;
+		background: var(--color-paper-2);
+		font-size: 0.75rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.category,
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.125rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		font-weight: 500;
+	}
+	.category {
+		background: color-mix(in oklab, var(--color-muted) 12%, transparent);
+		color: var(--color-muted);
+	}
+	.pill {
+		background: color-mix(in oklab, var(--color-accent) 14%, transparent);
+		color: var(--color-accent);
+		font-weight: 600;
+	}
+	.heading {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+	.title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+		transition: color 150ms var(--ease-standard);
+	}
+	.card:hover .title {
+		color: var(--color-accent);
+	}
+	.sub {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.875rem;
+		font-size: 0.75rem;
+		color: var(--color-muted);
+	}
+	.sub span {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+	.desc {
+		font-size: 0.875rem;
+		line-height: 1.6;
+		color: var(--color-muted);
+	}
+	.highlights {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+	.highlights li {
+		position: relative;
+		padding-left: 1.125rem;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--color-muted);
+	}
+	.highlights li::before {
+		content: "";
+		position: absolute;
+		top: 0.5rem;
+		left: 0.25rem;
+		width: 5px;
+		height: 5px;
+		border-radius: 9999px;
+		background: var(--color-accent);
+	}
+	/* === project photos === */
+	.shots {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+		gap: 0.5rem;
+	}
+	.shot {
+		overflow: hidden;
+		border: 1px solid var(--color-rule);
+		border-radius: 0.75rem;
+	}
+	/* A lone photo is a plate, not a billboard. */
+	.shot:only-child {
+		max-width: 15rem;
+	}
+	.shot :global(img) {
+		display: block;
+		width: 100%;
+		aspect-ratio: 2 / 3;
+		/* Wide cards would turn two portrait shots into billboards — cap the
+		   height and let cover crop the ratio back. */
+		max-height: 22rem;
+		object-fit: cover;
+		transition: transform 700ms var(--ease-emphasized);
+	}
+	.card:hover .shot :global(img) {
+		transform: scale(1.04);
+	}
+	@media (max-width: 639px) {
+		/* One photo per row on a phone — keep them from running the card long. */
+		.shot :global(img) {
+			max-height: 14rem;
+		}
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+	}
+	.tags li {
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.25rem;
+		background: var(--color-paper-2);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: var(--color-muted);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.875rem;
+		margin-top: 0.25rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--color-rule);
+	}
+	.link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--color-accent);
+	}
+	.link:hover {
+		text-decoration: underline;
+	}
+</style>
+
+<script>
+	document.querySelectorAll<HTMLElement>(".timeline").forEach((root) => {
+		const cards = [...root.querySelectorAll<HTMLElement>(".card")];
+		const chips = [...root.querySelectorAll<HTMLButtonElement>(".chip")];
+		const count = root.querySelector("[data-count]");
+		const empty = root.querySelector<HTMLElement>(".empty");
+
+		const apply = (cat: string) => {
+			const visible = cards.filter((c) => {
+				const show = !cat || c.dataset.cat === cat;
+				c.hidden = !show;
+				c.classList.remove("card--last");
+				return show;
+			});
+			visible.at(-1)?.classList.add("card--last");
+			if (count) count.textContent = String(visible.length);
+			if (empty) empty.hidden = visible.length > 0;
+			for (const ch of chips) ch.setAttribute("aria-pressed", String((ch.dataset.cat ?? "") === cat));
+		};
+		for (const ch of chips) ch.addEventListener("click", () => apply(ch.dataset.cat ?? ""));
+
+		// Reveal on scroll (port of Shirone's `use:reveal` action). No JS = everything visible.
+		if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+			const io = new IntersectionObserver(
+				(entries) => {
+					for (const e of entries) {
+						if (!e.isIntersecting) continue;
+						e.target.classList.add("is-visible");
+						io.unobserve(e.target);
+					}
+				},
+				{ rootMargin: "0px 0px -10% 0px" },
+			);
+			for (const c of cards) {
+				c.classList.add("reveal");
+				io.observe(c);
+			}
+		}
+	});
+</script>

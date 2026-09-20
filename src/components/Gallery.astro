@@ -1,0 +1,202 @@
+---
+/**
+ * Masonry gallery (layout + item styling from astro-art-portfolio) with a
+ * native <dialog> lightbox: a scroll-snap strip gives swipe on touch, the
+ * buttons / arrow keys cover desktop. No lightbox library.
+ */
+import { Image, getImage } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import type { Work } from "../content";
+
+interface Props {
+	items: Work[];
+	id?: string;
+}
+
+const { items, id = "works" } = Astro.props;
+const full = await Promise.all(
+	items.map((w) =>
+		getImage({ src: w.image, width: Math.min(1600, w.image.width), format: "webp", quality: 82 }),
+	),
+);
+---
+
+<section id={id} class="gallery mx-auto max-w-screen-xl px-4 md:px-8">
+	<div class="columns-2 gap-4 sm:columns-3 md:gap-6 lg:columns-4 xl:gap-8">
+		{
+			items.map((w, i) => (
+				<a
+					href={full[i].src}
+					data-index={i}
+					class="item group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-rule/60 bg-paper-2 transition-colors duration-300 hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:mb-6"
+				>
+					<span class="relative block">
+						<Image
+							src={w.image}
+							widths={[360, 720, 1080].filter((x) => x < w.image.width)}
+							sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+							alt={w.title}
+							loading={i < 4 ? "eager" : "lazy"}
+							class="photo block h-auto w-full transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]"
+						/>
+						<span class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 via-black/30 to-transparent px-4 pt-12 pb-4">
+							<span class="block text-[0.7rem] tracking-[0.12em] text-white/90 uppercase md:text-xs">
+								{w.title}
+							</span>
+						</span>
+					</span>
+				</a>
+			))
+		}
+	</div>
+
+	<dialog class="lightbox" aria-label="Зургийн үзүүлэлт">
+		<button type="button" class="lb-btn close" aria-label="Хаах" data-close>
+			<Icon name="material-symbols:close-rounded" class="size-7" />
+		</button>
+		<button type="button" class="lb-btn prev" aria-label="Өмнөх" data-dir="-1">
+			<Icon name="material-symbols:chevron-left-rounded" class="size-9" />
+		</button>
+		<button type="button" class="lb-btn next" aria-label="Дараах" data-dir="1">
+			<Icon name="material-symbols:chevron-right-rounded" class="size-9" />
+		</button>
+		<div class="strip">
+			{
+				items.map((w, i) => (
+					<figure>
+						<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" />
+						<figcaption>{w.title}</figcaption>
+					</figure>
+				))
+			}
+		</div>
+	</dialog>
+</section>
+
+<style>
+	.lightbox {
+		position: fixed;
+		inset: 0;
+		width: 100vw;
+		height: 100vh;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: oklch(95% 0.008 85);
+	}
+	.lightbox::backdrop {
+		background: oklch(10% 0.004 60 / 0.96);
+	}
+	.strip {
+		display: flex;
+		height: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+	.strip::-webkit-scrollbar {
+		display: none;
+	}
+	.strip figure {
+		display: flex;
+		flex: 0 0 100%;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		height: 100%;
+		padding: 4rem 1rem 2.5rem;
+		scroll-snap-align: center;
+	}
+	.strip img {
+		flex: 0 1 auto;
+		min-height: 0;
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+		border-radius: 0.5rem;
+	}
+	.strip figcaption {
+		font-size: 0.75rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: oklch(80% 0.085 85); /* champagne — the overlay is dark in both themes */
+	}
+	.lb-btn {
+		position: absolute;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		background: oklch(100% 0 0 / 0.12);
+		color: white;
+		backdrop-filter: blur(6px);
+		transition: background-color 150ms var(--ease-standard);
+	}
+	.lb-btn:hover {
+		background: oklch(100% 0 0 / 0.24);
+	}
+	.lb-btn:focus-visible {
+		outline: 2px solid var(--color-focus);
+		outline-offset: 2px;
+	}
+	.close {
+		top: 1rem;
+		right: 1rem;
+	}
+	.prev,
+	.next {
+		top: 50%;
+		transform: translateY(-50%);
+	}
+	.prev {
+		left: 1rem;
+	}
+	.next {
+		right: 1rem;
+	}
+	@media (hover: none) {
+		.prev,
+		.next {
+			display: none; /* touch: swipe the strip instead */
+		}
+	}
+</style>
+
+<script>
+	document.querySelectorAll<HTMLElement>(".gallery").forEach((root) => {
+		const dialog = root.querySelector("dialog");
+		const strip = dialog?.querySelector<HTMLElement>(".strip");
+		if (!dialog || !strip) return;
+
+		const go = (i: number) => strip.scrollTo({ left: i * strip.clientWidth, behavior: "instant" });
+		const step = (dir: number) => strip.scrollBy({ left: dir * strip.clientWidth, behavior: "smooth" });
+
+		root.querySelectorAll<HTMLAnchorElement>(".item").forEach((a) =>
+			a.addEventListener("click", (e) => {
+				e.preventDefault();
+				dialog.showModal();
+				go(Number(a.dataset.index));
+			}),
+		);
+		dialog.querySelectorAll<HTMLButtonElement>("[data-dir]").forEach((b) =>
+			b.addEventListener("click", () => step(Number(b.dataset.dir))),
+		);
+		dialog.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
+		// Clicking the dark area (strip / figure padding) closes; clicking the image does not.
+		dialog.addEventListener("click", (e) => {
+			const t = e.target as HTMLElement;
+			if (t === strip || t.tagName === "FIGURE") dialog.close();
+		});
+		dialog.addEventListener("keydown", (e) => {
+			if (e.key === "ArrowRight") step(1);
+			if (e.key === "ArrowLeft") step(-1);
+		});
+	});
+</script>

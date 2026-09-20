@@ -1,0 +1,98 @@
+---
+import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { Icon } from "astro-icon/components";
+import { site } from "../content";
+import "../styles/global.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	ogImage?: ImageMetadata;
+}
+
+const { title = site.title, description = site.description, ogImage } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
+const og = ogImage ? await getImage({ src: ogImage, width: 1200, format: "jpg" }) : undefined;
+const ogUrl = og && canonical ? new URL(og.src, canonical).href : og?.src;
+const year = new Date().getFullYear();
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<!doctype html>
+<html lang="mn">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="author" content={site.owner} />
+		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		{canonical && <meta property="og:url" content={canonical.href} />}
+		{ogUrl && <meta property="og:image" content={ogUrl} />}
+		<meta name="twitter:card" content={ogUrl ? "summary_large_image" : "summary"} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Geist:wght@400;500;600&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline>
+			// Theme init before first paint. Dark is the brand default — the OS
+			// preference does not get a vote, only an explicit toggle does.
+			(function () {
+				document.documentElement.classList.toggle("dark", localStorage.getItem("theme") !== "light");
+			})();
+		</script>
+	</head>
+	<body class="flex min-h-screen flex-col">
+		<header class="sticky top-0 z-40 border-b border-rule/60 bg-paper/75 backdrop-blur-xl">
+			<div class="mx-auto flex w-full max-w-screen-xl items-center justify-between gap-4 px-4 py-4 md:px-8">
+				<a href="#top" class="font-display text-2xl tracking-[0.06em]">{site.name}</a>
+				<div class="flex items-center gap-4 sm:gap-6">
+					<nav class="flex flex-wrap gap-x-5 gap-y-1 text-[0.7rem] tracking-[0.18em] text-muted uppercase max-sm:hidden">
+						{site.nav.map((item) => <a href={item.href} class="transition-colors hover:text-accent">{item.label}</a>)}
+					</nav>
+					<a
+						href={site.phoneHref}
+						class="text-[0.7rem] tracking-[0.18em] text-accent uppercase sm:hidden"
+						aria-label={`Залгах ${site.phone}`}
+					>
+						{site.phone}
+					</a>
+					<button
+						id="theme-toggle"
+						type="button"
+						aria-label="Гэрэлтэй / харанхуй горим"
+						class="flex size-10 shrink-0 items-center justify-center rounded-full border border-rule text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
+					>
+						<Icon name="material-symbols:light-mode-rounded" class="hidden size-5 dark:block" />
+						<Icon name="material-symbols:dark-mode-rounded" class="block size-5 dark:hidden" />
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<main class="flex-1"><slot /></main>
+
+		<footer class="mx-auto mt-24 w-full max-w-screen-xl border-t border-rule/60 px-4 pt-10 pb-10 md:mt-32 md:px-8">
+			<p class="font-display mb-5 text-center text-2xl tracking-[0.06em]">{site.name}</p>
+			<nav class="mb-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[0.7rem] tracking-[0.18em] uppercase">
+				{site.nav.map((item) => <a href={item.href} class="text-muted transition-colors hover:text-accent">{item.label}</a>)}
+				<a href={site.instagram} target="_blank" rel="me noopener" class="text-muted transition-colors hover:text-accent">Instagram</a>
+			</nav>
+			<p class="text-center text-xs text-muted">© {year} {site.name} · {site.city} · {site.phone}</p>
+		</footer>
+
+		<script>
+			document.getElementById("theme-toggle")?.addEventListener("click", () => {
+				const dark = document.documentElement.classList.toggle("dark");
+				localStorage.setItem("theme", dark ? "dark" : "light");
+			});
+		</script>
+	</body>
+</html>
