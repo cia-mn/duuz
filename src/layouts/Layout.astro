@@ -16,7 +16,6 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefin
 const og = ogImage ? await getImage({ src: ogImage, width: 1200, format: "jpg" }) : undefined;
 const ogUrl = og && canonical ? new URL(og.src, canonical).href : og?.src;
 const year = new Date().getFullYear();
-const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 ---
 
 <!doctype html>
@@ -27,7 +26,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<meta name="author" content={site.owner} />
-		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content={site.name} />
 		<meta property="og:title" content={title} />

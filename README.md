@@ -64,14 +64,24 @@ be switched to *Source: GitHub Actions* once:
 gh api -X POST repos/cia-mn/duuz/pages -f build_type=workflow
 ```
 
-Live at `https://cia-mn.github.io/duuz/`. That subpath is why `astro.config.mjs` sets
-`base: "/duuz"`: Astro prefixes every URL it generates, but a hand-written absolute path
-does not get rewritten — go through `import.meta.env.BASE_URL` like the favicon does, or
-it 404s in production while working fine in `npm run dev`.
+Live at **https://duuz.mn** (`cia-mn.github.io/duuz/` and `www.duuz.mn` redirect to it).
+The custom domain is a repo setting, not a file — Pages ignores `CNAME` files when it
+deploys from a workflow:
 
-**Moving to a real domain:** set `site` to it, delete `base`, put the bare hostname in
-`public/CNAME`, and point DNS at GitHub (apex: the four A records from GitHub's Pages
-docs; `www`: a CNAME to `cia-mn.github.io`). Pages issues the certificate itself.
+```bash
+gh api -X PUT repos/cia-mn/duuz/pages -f cname=duuz.mn
+```
+
+DNS lives at dns.mn (`ns1–4.dns.mn`):
+
+| Name  | Type  | Value |
+| ---   | ---   | --- |
+| `@`   | A     | `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153` |
+| `@`   | AAAA  | `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153` |
+| `www` | CNAME | `cia-mn.github.io.` |
+
+Plus the `_github-pages-challenge-cia-mn` TXT record from the org's verified-domains page —
+it stops anyone else's Pages site from claiming `duuz.mn` if this one is ever turned off.
 
 ## Before going live
 
