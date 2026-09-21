@@ -36,6 +36,15 @@
 	--color-on-accent: oklch(15% 0.012 60);
 }
 
+/* Champagne light bloom shared by the hero halo, the CTA pulse and hover glows.
+   Gold reads as light on the dark theme; on paper it is only a tint. */
+:root {
+	--glow: color-mix(in oklab, var(--color-accent) 18%, transparent);
+}
+.dark {
+	--glow: color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
 @layer base {
 	html {
 		scroll-behavior: smooth;
@@ -45,13 +54,6 @@
 	}
 	body {
 		@apply bg-paper font-sans text-ink antialiased;
-		/* Faint accent halo behind the hero so the flat near-black has depth. */
-		background-image: radial-gradient(
-			60rem 32rem at 50% -10rem,
-			color-mix(in oklab, var(--color-accent) 10%, transparent),
-			transparent 70%
-		);
-		background-repeat: no-repeat;
 	}
 	/* Lock page scroll while the gallery lightbox is open. */
 	body:has(dialog[open]) {
@@ -63,12 +65,16 @@
 		line-height: 1.05;
 	}
 	/* Photo finish — a touch more contrast and colour so the phone-shot
-	   interiors hold their own against the near-black page. */
-	.photo {
-		filter: contrast(1.05) saturate(1.08);
-	}
-	.dark .photo {
-		filter: contrast(1.07) saturate(1.08) brightness(0.96);
+	   interiors hold their own against the near-black page. Desktop only: a
+	   filter makes every tile raster through an offscreen pass, which phones
+	   feel while scrolling. */
+	@media (min-width: 768px) {
+		.photo {
+			filter: contrast(1.05) saturate(1.08);
+		}
+		.dark .photo {
+			filter: contrast(1.07) saturate(1.08) brightness(0.96);
+		}
 	}
 	/* Small-caps label above a section heading. */
 	.eyebrow {
@@ -80,6 +86,80 @@
 	@media (prefers-reduced-motion: reduce) {
 		html {
 			scroll-behavior: auto;
+		}
+	}
+}
+
+@layer components {
+	/* Glow rules. Everything that moves animates only opacity / transform, so
+	   it runs on the compositor; animating text-shadow or box-shadow repaints
+	   every frame and made phones stutter. */
+
+	/* Hero halo — a breathing bloom behind the title. It stays inside the
+	   hero's top margin so the header's backdrop blur never re-renders it. */
+	.hero {
+		position: relative;
+		isolation: isolate;
+	}
+	.hero::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		inset: -2rem 0 -6rem;
+		pointer-events: none;
+		/* closest-side: fully transparent at the box edges, so no hard line. */
+		background: radial-gradient(closest-side at 50% 35%, var(--glow), transparent);
+		opacity: 0.7;
+		transform-origin: 50% 35%;
+	}
+	.glow-text {
+		text-shadow:
+			0 0 1.5rem var(--glow),
+			0 0 4rem var(--glow);
+	}
+	/* Primary buttons: a static shadow plus a bloom layer whose opacity pulses. */
+	.glow {
+		position: relative;
+		isolation: isolate;
+		box-shadow: 0 0 1.25rem -0.25rem var(--glow);
+	}
+	.glow::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		inset: -0.75rem -1rem;
+		border-radius: inherit;
+		background: radial-gradient(closest-side, var(--glow), transparent);
+		opacity: 0;
+	}
+	.glow:hover::before {
+		opacity: 1;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.hero::before {
+			animation: glow-breathe 8s ease-in-out infinite;
+		}
+		.glow::before {
+			animation: glow-pulse 3s ease-in-out infinite;
+		}
+		.glow:hover::before {
+			animation: none;
+		}
+	}
+	@keyframes glow-breathe {
+		0%,
+		100% {
+			opacity: 0.5;
+			transform: scale(0.94);
+		}
+		50% {
+			opacity: 1;
+			transform: scale(1.06);
+		}
+	}
+	@keyframes glow-pulse {
+		50% {
+			opacity: 1;
 		}
 	}
 }

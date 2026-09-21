@@ -5,19 +5,19 @@ import logo from "../assets/logo.jpg";
 import Gallery from "../components/Gallery.astro";
 import Timeline from "../components/Timeline.astro";
 import Layout from "../layouts/Layout.astro";
-import { categories, services, site, timeline, works } from "../content";
+import { categories, site, steps, timeline, works } from "../content";
 
 const btn =
 	"inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-3.5 text-xs font-medium tracking-[0.16em] uppercase transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-paper md:text-[0.8rem]";
-const btnPrimary = `${btn} bg-accent text-on-accent hover:brightness-110`;
+const btnPrimary = `${btn} glow bg-accent text-on-accent hover:brightness-110`;
 const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:text-accent`;
 ---
 
 <Layout ogImage={works[0].image}>
 	<!-- Hero: same rhythm as the reference index — display title, muted tagline. -->
-	<div id="top" class="mt-14 mb-14 px-4 text-center sm:mt-20 sm:mb-20 md:mt-28 md:mb-24">
+	<div id="top" class="hero mt-14 mb-14 px-4 text-center sm:mt-20 sm:mb-20 md:mt-28 md:mb-24">
 		<p class="eyebrow mb-6">{site.eyebrow}</p>
-		<h1 class="font-display mb-6 text-display md:mb-8">{site.name}</h1>
+		<h1 class="font-display glow-text mb-6 text-display md:mb-8">{site.name}</h1>
 		<p class="mx-auto max-w-screen-sm text-muted md:text-lg">{site.tagline}</p>
 		<div class="mt-9 flex flex-wrap justify-center gap-3">
 			<a href={site.phoneHref} class={btnPrimary}>
@@ -28,26 +28,44 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 				<Icon name="fa6-brands:instagram" class="size-5" aria-hidden="true" />
 				Instagram
 			</a>
+			<a href={site.facebook} target="_blank" rel="me noopener" class={btnQuiet}>
+				<Icon name="fa6-brands:facebook" class="size-5" aria-hidden="true" />
+				Facebook
+			</a>
 		</div>
 	</div>
 
 	<Gallery items={works} />
 
+	<!-- Services: what you can order, then the four steps that are ours. -->
 	<section id="services" class="mx-auto mt-24 max-w-screen-xl px-4 md:mt-32 md:px-8">
-		<p class="eyebrow mb-4 text-center">Юу хийдэг вэ</p>
-		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Үйлчилгээ</h2>
-		<p class="mx-auto mb-10 max-w-screen-sm text-center text-muted">{site.servicesIntro}</p>
-		<div class="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
+		<p class="eyebrow mb-4 text-center">Үйлчилгээ</p>
+		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Та зөвхөн захиална.</h2>
+		<p class="mx-auto mb-8 max-w-screen-sm text-center text-muted">{site.servicesIntro}</p>
+
+		<ul class="mb-10 flex flex-wrap justify-center gap-x-7 gap-y-3 text-[0.7rem] tracking-[0.16em] text-muted uppercase md:mb-12" aria-label="Юу захиалж болох вэ">
 			{
-				services.map((s) => (
-					<div class="rounded-2xl border border-rule bg-paper-2 p-7 transition duration-300 ease-emphasized hover:-translate-y-1 hover:border-accent/60">
-						<Icon name={s.icon} class="mb-5 size-7 text-accent" aria-hidden="true" />
-						<h3 class="mb-2 text-base font-medium tracking-[0.02em]">{s.title}</h3>
-						<p class="text-sm leading-relaxed text-muted">{s.text}</p>
-					</div>
+				categories.map((c) => (
+					<li class="inline-flex items-center gap-2">
+						<Icon name={c.icon} class="size-5 text-accent" aria-hidden="true" />
+						{c.label}
+					</li>
 				))
 			}
-		</div>
+		</ul>
+
+		<ol class="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
+			{
+				steps.map((s, i) => (
+					<li class="rounded-2xl border border-rule bg-paper-2 p-7 transition duration-300 ease-emphasized hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_2.5rem_-0.5rem_var(--glow)]">
+						<p class="eyebrow mb-5 text-muted">Бид · 0{i + 1}</p>
+						<Icon name={s.icon} class="mb-5 size-8 text-accent" aria-hidden="true" />
+						<h3 class="mb-2 text-base font-medium tracking-[0.02em]">{s.title}</h3>
+						<p class="text-sm leading-relaxed text-muted">{s.text}</p>
+					</li>
+				))
+			}
+		</ol>
 	</section>
 
 	<div class="mt-24 md:mt-32">
@@ -72,6 +90,10 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 							<a href={site.instagram} target="_blank" rel="me noopener" class="hover:text-accent">@duuz_design</a>
 						</li>
 						<li class="flex items-center gap-2">
+							<Icon name="fa6-brands:facebook" class="size-5 text-accent" aria-hidden="true" />
+							<a href={site.facebook} target="_blank" rel="me noopener" class="hover:text-accent">duuzdesigntavilga</a>
+						</li>
+						<li class="flex items-center gap-2">
 							<Icon name="material-symbols:location-on-outline-rounded" class="size-5 text-accent" aria-hidden="true" />
 							<span>{site.city}</span>
 						</li>
@@ -79,6 +101,7 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 					<div class="flex flex-wrap gap-3">
 						<a href={site.phoneHref} class={btnPrimary}>Залгах</a>
 						<a href={site.instagram} target="_blank" rel="me noopener" class={btnQuiet}>Instagram-аар бичих</a>
+						<a href={site.facebook} target="_blank" rel="me noopener" class={btnQuiet}>Facebook-ээр бичих</a>
 					</div>
 				</div>
 				<Image

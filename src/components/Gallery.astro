@@ -3,6 +3,9 @@
  * Masonry gallery (layout + item styling from astro-art-portfolio) with a
  * native <dialog> lightbox: a scroll-snap strip gives swipe on touch, the
  * buttons / arrow keys cover desktop. No lightbox library.
+ *
+ * A work with a `video` plays it muted over its photo in the grid (only while
+ * on screen) and with controls in the lightbox; the photo stays the poster.
  */
 import { Image, getImage } from "astro:assets";
 import { Icon } from "astro-icon/components";
@@ -16,9 +19,13 @@ interface Props {
 const { items, id = "works" } = Astro.props;
 const full = await Promise.all(
 	items.map((w) =>
-		getImage({ src: w.image, width: Math.min(1600, w.image.width), format: "webp", quality: 82 }),
+		getImage({ src: w.image, width: Math.min(1600, w.image.width), format: "webp", quality: 85 }),
 	),
 );
+// The native width must be in the srcset: once `w` descriptors exist browsers
+// ignore `src`, so a 640px photo would otherwise always render from the 360px file.
+const widths = (w: number) => [...[360, 720, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
+const zoom = "transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]";
 ---
 
 <section id={id} class="gallery mx-auto max-w-screen-xl px-4 md:px-8">
@@ -26,19 +33,36 @@ const full = await Promise.all(
 		{
 			items.map((w, i) => (
 				<a
-					href={full[i].src}
+					href={w.video ?? full[i].src}
 					data-index={i}
-					class="item group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-rule/60 bg-paper-2 transition-colors duration-300 hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:mb-6"
+					class="item group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-rule/60 bg-paper-2 transition duration-300 hover:border-accent/60 hover:shadow-[0_0_2rem_-0.25rem_var(--glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:mb-6"
 				>
 					<span class="relative block">
 						<Image
 							src={w.image}
-							widths={[360, 720, 1080].filter((x) => x < w.image.width)}
+							widths={widths(w.image.width)}
 							sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+							quality={85}
 							alt={w.title}
 							loading={i < 4 ? "eager" : "lazy"}
-							class="photo block h-auto w-full transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]"
+							class={`photo block h-auto w-full ${zoom}`}
 						/>
+						{w.video && (
+							<video
+								src={w.video}
+								muted
+								loop
+								playsinline
+								preload="none"
+								aria-hidden="true"
+								class={`absolute inset-0 size-full object-cover ${zoom}`}
+							/>
+						)}
+						{w.video && (
+							<span class="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm">
+								<Icon name="material-symbols:play-arrow-rounded" class="size-5" aria-hidden="true" />
+							</span>
+						)}
 						<span class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 via-black/30 to-transparent px-4 pt-12 pb-4">
 							<span class="block text-[0.7rem] tracking-[0.12em] text-white/90 uppercase md:text-xs">
 								{w.title}
@@ -64,7 +88,22 @@ const full = await Promise.all(
 			{
 				items.map((w, i) => (
 					<figure>
-						<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" />
+						{w.video ? (
+							<video
+								src={w.video}
+								poster={full[i].src}
+								width={w.image.width}
+								height={w.image.height}
+								muted
+								loop
+								playsinline
+								controls
+								preload="none"
+								aria-label={w.title}
+							/>
+						) : (
+							<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" />
+						)}
 						<figcaption>{w.title}</figcaption>
 					</figure>
 				))
@@ -112,9 +151,12 @@ const full = await Promise.all(
 		padding: 4rem 1rem 2.5rem;
 		scroll-snap-align: center;
 	}
-	.strip img {
+	.strip img,
+	.strip video {
 		flex: 0 1 auto;
 		min-height: 0;
+		width: auto;
+		height: auto;
 		max-width: 100%;
 		max-height: 100%;
 		object-fit: contain;
@@ -195,8 +237,28 @@ const full = await Promise.all(
 			if (t === strip || t.tagName === "FIGURE") dialog.close();
 		});
 		dialog.addEventListener("keydown", (e) => {
+			if ((e.target as HTMLElement).tagName === "VIDEO") return; // arrows seek the clip there
 			if (e.key === "ArrowRight") step(1);
 			if (e.key === "ArrowLeft") step(-1);
 		});
+
+		// Clips play only while on screen: grid tiles as they scroll into view,
+		// lightbox slides as they snap into place (which also stops them on close).
+		const watch = (videos: NodeListOf<HTMLVideoElement>, options: IntersectionObserverInit) => {
+			if (!videos.length) return;
+			const io = new IntersectionObserver((entries) => {
+				for (const e of entries) {
+					const v = e.target as HTMLVideoElement;
+					if (e.isIntersecting) v.play().catch(() => {});
+					else v.pause();
+				}
+			}, options);
+			videos.forEach((v) => io.observe(v));
+		};
+		const still =
+			matchMedia("(prefers-reduced-motion: reduce)").matches ||
+			(navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
+		if (!still) watch(root.querySelectorAll<HTMLVideoElement>(".item video"), { rootMargin: "25%" });
+		watch(strip.querySelectorAll("video"), { root: strip, threshold: 0.6 });
 	});
 </script>
