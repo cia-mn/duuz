@@ -2,7 +2,9 @@
  * Every piece of copy, every project, every photo the site renders.
  * Edit this one file to change the site; the components take it as props.
  *
- * Sources: photos and captions from instagram.com/duuz_design (Sept 2026).
+ * Sources: photos and captions from instagram.com/duuz_design (Sept 2026);
+ * the living room, dark-stone kitchen and Sista USA shop are the studio's own
+ * iPhone originals, Minister Tower a photographer's shoot for the studio.
  * Material brands below are the ones named in the studio's own captions.
  */
 import type { ImageMetadata } from "astro";
@@ -11,10 +13,26 @@ import entryMirrorBench from "./assets/work/entry-mirror-bench.jpg";
 import glassFrontWardrobe from "./assets/work/glass-front-wardrobe.jpg";
 import hallwayTallCabinets from "./assets/work/hallway-tall-cabinets.jpg";
 import kitchenApplianceWall from "./assets/work/kitchen-appliance-wall.jpg";
+import kitchenDarkStone from "./assets/work/kitchen-dark-stone.jpg";
+import kitchenDarkStoneOvenColumn from "./assets/work/kitchen-dark-stone-oven-column.jpg";
+import kitchenDarkStoneRoundedEnd from "./assets/work/kitchen-dark-stone-rounded-end.jpg";
 import kitchenIslandOpenShelving from "./assets/work/kitchen-island-open-shelving.jpg";
 import kitchenMandalaGarden from "./assets/work/kitchen-mandala-garden.jpg";
 import kitchenMarbleBacksplash from "./assets/work/kitchen-marble-backsplash.jpg";
+import livingRoomBedNiche from "./assets/work/living-room-bed-niche.jpg";
+import livingRoomGlassVitrine from "./assets/work/living-room-glass-vitrine.jpg";
+import livingRoomSlatPartition from "./assets/work/living-room-slat-partition.jpg";
+import livingRoomWardrobeConsole from "./assets/work/living-room-wardrobe-console.jpg";
+import livingRoomWindowDesk from "./assets/work/living-room-window-desk.jpg";
 import livingTvShelving from "./assets/work/living-tv-shelving.jpg";
+import ministerTowerKitchen from "./assets/work/minister-tower-kitchen.jpg";
+import ministerTowerNiche from "./assets/work/minister-tower-niche.jpg";
+import ministerTowerRoundedKitchen from "./assets/work/minister-tower-rounded-kitchen.jpg";
+import ministerTowerWallUnit from "./assets/work/minister-tower-wall-unit.jpg";
+import ministerTowerWardrobeShelving from "./assets/work/minister-tower-wardrobe-shelving.jpg";
+import shopArchedVitrines from "./assets/work/shop-arched-vitrines.jpg";
+import shopDisplayCounter from "./assets/work/shop-display-counter.jpg";
+import shopWalkthrough from "./assets/work/shop-walkthrough.jpg";
 import tvWallFloatingUnit from "./assets/work/tv-wall-floating-unit.jpg";
 import vanityStoneBasin from "./assets/work/vanity-stone-basin.jpg";
 import wardrobePremiumMatte from "./assets/work/wardrobe-premium-matte.jpg";
@@ -23,6 +41,10 @@ import wardrobeRoundHandles from "./assets/work/wardrobe-round-handles.jpg";
 import kitchenIslandOpenShelvingClip from "./assets/work/kitchen-island-open-shelving.mp4";
 import tvWallFloatingUnitClip from "./assets/work/tv-wall-floating-unit.mp4";
 import wardrobeRoundHandlesClip from "./assets/work/wardrobe-round-handles.mp4";
+// Studio footage: iPhone HDR tone-mapped to SDR, muted; the poster is each clip's first frame.
+import shopArchedVitrinesClip from "./assets/work/shop-arched-vitrines.mp4";
+import shopDisplayCounterClip from "./assets/work/shop-display-counter.mp4";
+import shopWalkthroughClip from "./assets/work/shop-walkthrough.mp4";
 
 export interface Work {
 	image: ImageMetadata;
@@ -85,22 +107,37 @@ export const site = {
 };
 
 /**
- * Masonry gallery. CSS columns fill top-down, so the three clips sit at
- * positions 3 / 6 / 10 to land in different columns on a wide screen.
+ * Masonry gallery. CSS columns fill top-down and balance by height, so the
+ * order decides which tiles end up side by side. This one evens out the
+ * columns and keeps the clips out of each other's rows at four columns and
+ * staggered at three and two; re-check the layout when adding a tile.
  */
 export const works: Work[] = [
 	{ image: kitchenMandalaGarden, title: "Mandala Garden — гал тогоо" },
 	{ image: kitchenMarbleBacksplash, title: "Гантиг ар хана, матт фасад" },
-	{ image: kitchenIslandOpenShelving, title: "Арал бүхий гал тогоо", video: kitchenIslandOpenShelvingClip },
-	{ image: kitchenApplianceWall, title: "Суурилуулсан техник, модон фасад" },
-	{ image: vanityStoneBasin, title: "Угаалтуурын чулуун тавцан" },
+	{ image: livingRoomSlatPartition, title: "Зочны өрөө — LED рейк хаалт" },
 	{ image: tvWallFloatingUnit, title: "Агаарт хөвөх ТВ тавиур", video: tvWallFloatingUnitClip },
+	{ image: livingRoomGlassVitrine, title: "Хар хүрээтэй шилэн витрин" },
+	{ image: kitchenDarkStone, title: "Бараан чулуун хээтэй гал тогоо" },
+	{ image: shopDisplayCounter, title: "Шилэн тавцантай лангуу", video: shopDisplayCounterClip },
 	{ image: wardrobePremiumMatte, title: "Premium Matte шүүгээний хана" },
-	{ image: hallwayTallCabinets, title: "Хөргөгчтэй өндөр шүүгээ" },
+	{ image: kitchenDarkStoneRoundedEnd, title: "Дугуйруулсан төгсгөл, чулуун тавцан" },
+	{ image: ministerTowerRoundedKitchen, title: "Anti-fingerprint фасадтай гал тогоо" },
 	{ image: entryMirrorBench, title: "Үүдний толь, сандал" },
-	{ image: wardrobeRoundHandles, title: "Дугуй бариултай шүүгээ", video: wardrobeRoundHandlesClip },
+	{ image: ministerTowerWardrobeShelving, title: "Хувцасны шүүгээ, LED задгай тавиур" },
+	{ image: livingRoomWindowDesk, title: "Ажлын ширээ, цонхны тавцан" },
+	{ image: ministerTowerKitchen, title: "Minister Tower — гал тогоо, зочны өрөө" },
+	{ image: hallwayTallCabinets, title: "Хөргөгчтэй өндөр шүүгээ" },
+	{ image: ministerTowerWallUnit, title: "Native Steel хавтантай ханын шүүгээ" },
 	{ image: glassFrontWardrobe, title: "Шилэн хаалгатай гардероб" },
+	{ image: shopWalkthrough, title: "Sista USA shop — дэлгүүрийн тавилга", video: shopWalkthroughClip },
 	{ image: livingTvShelving, title: "Зочны өрөөний ТВ хана" },
+	{ image: kitchenIslandOpenShelving, title: "Арал бүхий гал тогоо", video: kitchenIslandOpenShelvingClip },
+	{ image: vanityStoneBasin, title: "Угаалтуурын чулуун тавцан" },
+	{ image: shopArchedVitrines, title: "Нуман оройтой шилэн витрин", video: shopArchedVitrinesClip },
+	{ image: kitchenApplianceWall, title: "Суурилуулсан техник, модон фасад" },
+	{ image: livingRoomWardrobeConsole, title: "Шүүгээ, хөвөх консол ширээ" },
+	{ image: wardrobeRoundHandles, title: "Дугуй бариултай шүүгээ", video: wardrobeRoundHandlesClip },
 ];
 
 /** What happens after an order, in the order it happens. */
@@ -132,6 +169,7 @@ export const categories: Category[] = [
 	{ key: "wardrobe", label: "Шүүгээ", icon: "material-symbols:checkroom-rounded" },
 	{ key: "tv-wall", label: "ТВ хана", icon: "material-symbols:tv-gen-rounded" },
 	{ key: "interior", label: "Дотоод засал", icon: "material-symbols:wall-lamp-rounded" },
+	{ key: "commercial", label: "Худалдаа, үйлчилгээ", icon: "material-symbols:storefront-rounded" },
 ];
 
 /** Newest first — the page renders this order as-is. */
@@ -213,5 +251,80 @@ export const timeline: TimelineItem[] = [
 		tags: ["Хувцасны шүүгээ"],
 		links: [{ label: "Instagram дээр үзэх", url: "https://www.instagram.com/reel/DYR-YDhpBIk/", icon: "fa6-brands:instagram" }],
 		icon: "material-symbols:shelves-rounded",
+	},
+	{
+		title: "Олон үйлдэлт зочны өрөө",
+		date: "2026.02",
+		category: "interior",
+		subtitle: "Орон сууцны иж бүрэн тавилга",
+		description:
+			"Нэг өрөөнд унтах, ажиллах, хувцас хадгалах хэсгийг багтааж хийсэн ажил. Орны хэсгийг LED шугамтай рейк хаалтаар тусгаарлаж, цайвар саарал фасадыг бараан саарал элементүүдтэй хослуулсан.",
+		images: [livingRoomSlatPartition, livingRoomWardrobeConsole, livingRoomWindowDesk, livingRoomGlassVitrine, livingRoomBedNiche],
+		highlights: [
+			"Таазны өндрөөр хийсэн шүүгээ, хар хүрээтэй шилэн витрин",
+			"LED шугамтай рейк хаалт, хөвөх тавиур, консол ширээ",
+			"Гэрэлтэй тавиуртай ажлын ширээ, орны дээд шүүгээ",
+			"Цонхны тавцан, радиаторын хаалт, шургуулга",
+		],
+		tags: ["Матт фасад", "LED гэрэлтүүлэг", "Шилэн витрин", "Рейк хаалт"],
+		icon: "material-symbols:weekend-rounded",
+	},
+	{
+		title: "Бараан чулуун хээтэй гал тогоо",
+		date: "2026.02",
+		category: "kitchen",
+		subtitle: "Орон сууцны гал тогоо",
+		description:
+			"Гэрээ бүрэн шинэчилсэн айлын гал тогоо. Цагаан матт фасадыг бараан чулуун хээтэй тавцан, ар ханатай хослуулж, тавцангийн төгсгөлийг дугуйруулж хийсэн.",
+		images: [kitchenDarkStone, kitchenDarkStoneRoundedEnd, kitchenDarkStoneOvenColumn],
+		highlights: [
+			"Дугуйруулсан төгсгөлийн шүүгээ, тавцан",
+			"Бараан чулуун хээтэй тавцан, ар хана",
+			"Зуух, богино долгионы зуух суурилуулсан өндөр шүүгээ",
+			"Таазанд тулсан дээд шүүгээ, доод талын LED гэрэл",
+		],
+		tags: ["Матт фасад", "Чулуун хээтэй тавцан", "LED гэрэлтүүлэг"],
+		links: [{ label: "Facebook дээр үзэх", url: "https://www.facebook.com/reel/1085146147218328/", icon: "fa6-brands:facebook" }],
+	},
+	{
+		title: "Minister Tower — орон сууцны иж бүрэн тавилга",
+		date: "2025.12",
+		category: "interior",
+		subtitle: "Гал тогоо, зочны өрөө, хувцасны шүүгээ",
+		description:
+			"Дугуйрсан хийцлэл нь орон зайг илүү уужим, аюулгүй, орчин үеийн харагдуулдаг. Anti-fingerprint технологитой тавилгын нүүр нь хурууны хээ, толбыг бага татаж, өдөр тутмын арчилгааг илүү хялбар болгоно.",
+		images: [ministerTowerKitchen, ministerTowerRoundedKitchen, ministerTowerWallUnit, ministerTowerNiche, ministerTowerWardrobeShelving],
+		highlights: [
+			"Дугуйруулсан арал, тавцангийн төгсгөл",
+			"Rocko Tiles Native Steel хавтантай, LED гэрэлтэй тавиур",
+			"Хар шилэн хаалгатай витрин шүүгээ",
+			"Урт босоо бариултай хувцасны шүүгээ, LED гэрэлтэй задгай тавиур",
+		],
+		tags: ["Euromat", "PET-MDF Cream vanilla 6383SM", "Rocko Tiles R120 Native Steel", "Anti-fingerprint"],
+		links: [
+			{
+				label: "Facebook дээр үзэх",
+				url: "https://www.facebook.com/duuzdesigntavilga/posts/pfbid0DWT9w9kNcqwqvpVkn7WPsBAwKqg7n2fv7Tqy3biXskh6qXtEBh1WVB416yVbqec1l",
+				icon: "fa6-brands:facebook",
+			},
+		],
+		featured: true,
+	},
+	{
+		title: "Sista USA shop — дэлгүүрийн тавилга",
+		date: "2025.06",
+		category: "commercial",
+		subtitle: "Худалдааны төвийн дэлгүүр",
+		description:
+			"Rose gold металл хүрээтэй LED тавиур, хувцасны өлгүүр, нуман оройтой шилэн витрин, шилэн тавцантай лангууг нэг хэв маягаар хийж эзэндээ хүлээлгэн өглөө.",
+		images: [shopWalkthrough, shopArchedVitrines, shopDisplayCounter],
+		highlights: [
+			"LED гэрэлтэй тавиур, rose gold металл хүрээ",
+			"Хананы дагуух хувцасны өлгүүр, тавиур",
+			"Нуман оройтой, арын гэрэлтэй шилэн витрин",
+			"Шилэн тавцантай лангуу, цоожтой доод шүүгээ",
+		],
+		tags: ["Худалдааны тавилга", "LED гэрэлтүүлэг", "Шилэн витрин", "Металл хүрээ"],
+		links: [{ label: "Facebook дээр үзэх", url: "https://www.facebook.com/share/p/1GrUXMqyME/", icon: "fa6-brands:facebook" }],
 	},
 ];
