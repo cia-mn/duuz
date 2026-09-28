@@ -4,9 +4,10 @@ import { Icon } from "astro-icon/components";
 import logo from "../assets/logo.jpg";
 import Gallery from "../components/Gallery.astro";
 import Hero from "../components/Hero.astro";
+import ModelStage from "../components/ModelStage.astro";
 import Timeline from "../components/Timeline.astro";
 import Layout from "../layouts/Layout.astro";
-import { categories, site, steps, timeline, works } from "../content";
+import { categories, showcase, site, steps, timeline, works } from "../content";
 
 const btn =
 	"inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-3.5 text-xs font-medium tracking-[0.16em] uppercase transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-paper md:text-[0.8rem]";
@@ -33,7 +34,7 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 
 	<Gallery items={works} />
 
-	<!-- Services: what you can order, then the four steps that are ours. -->
+	<!-- Services: what you can order, then the four steps that are ours, played out on a 3D model. -->
 	<section id="services" class="mx-auto mt-24 max-w-screen-xl px-4 md:mt-32 md:px-8">
 		<p class="eyebrow mb-4 text-center">Үйлчилгээ</p>
 		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Та зөвхөн захиална.</h2>
@@ -50,18 +51,7 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 			}
 		</ul>
 
-		<ol class="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
-			{
-				steps.map((s, i) => (
-					<li class="rounded-2xl border border-rule bg-paper-2 p-7 transition duration-300 ease-emphasized hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_2.5rem_-0.5rem_var(--glow)]">
-						<p class="eyebrow mb-5 text-muted">Бид · 0{i + 1}</p>
-						<Icon name={s.icon} class="mb-5 size-8 text-accent" aria-hidden="true" />
-						<h3 class="mb-2 text-base font-medium tracking-[0.02em]">{s.title}</h3>
-						<p class="text-sm leading-relaxed text-muted">{s.text}</p>
-					</li>
-				))
-			}
-		</ol>
+		<ModelStage steps={steps} showcase={showcase} />
 	</section>
 
 	<div class="mt-24 md:mt-32">

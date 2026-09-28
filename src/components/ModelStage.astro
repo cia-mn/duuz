@@ -1,0 +1,327 @@
+---
+/**
+ * Services: the four steps beside a 3D stage that shows each one on a real
+ * project's SketchUp model — the room measured, the design drawn in glowing
+ * edges, the panels built, the finishes on (src/scripts/model-stage.ts).
+ *
+ * On screen, the stage plays the steps in turn, a bar on the active card
+ * counting down to the next. Hovering or clicking a card, or turning the
+ * model, hands the controls to the visitor and stops the tour.
+ *
+ * three.js and the ~1 MB model load only as the section comes near, and only
+ * on request under Save-Data. Without JS or WebGL the cards stand alone.
+ */
+import { Icon } from "astro-icon/components";
+import type { Showcase, Step } from "../content";
+
+interface Props {
+	steps: Step[];
+	showcase: Showcase;
+	id?: string;
+}
+
+const { steps, showcase, id = "stage" } = Astro.props;
+---
+
+<div class="model-stage grid gap-4 md:gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]" data-model={showcase.model}>
+	<figure id={id} class="stage relative isolate aspect-square overflow-hidden rounded-2xl border border-rule bg-paper-2 sm:aspect-[4/3] lg:aspect-auto lg:min-h-[34rem]">
+		<canvas class="absolute inset-0 size-full cursor-grab touch-pan-y active:cursor-grabbing" role="img" aria-label={showcase.label}></canvas>
+
+		<figcaption class="pointer-events-none absolute top-5 left-5 md:top-7 md:left-7">
+			<p class="eyebrow mb-2">{showcase.eyebrow}</p>
+			<p class="font-display text-2xl sm:text-3xl md:text-4xl" data-caption>01 · {steps[0].title}</p>
+		</figcaption>
+
+		<p class="hint pointer-events-none absolute bottom-4 left-5 flex items-center gap-2 text-[0.7rem] tracking-[0.16em] text-muted uppercase md:bottom-6 md:left-7">
+			<Icon name="material-symbols:360-rounded" class="size-5 text-accent" aria-hidden="true" />
+			{showcase.hint}
+		</p>
+
+		<div class="status absolute inset-0 grid place-items-center">
+			<p class="loading flex flex-col items-center gap-3 text-[0.7rem] tracking-[0.16em] text-muted uppercase">
+				{showcase.loading}
+				<span class="relative block h-px w-32 overflow-hidden bg-rule">
+					<span class="progress absolute inset-0 origin-left bg-accent"></span>
+				</span>
+			</p>
+			<button
+				type="button"
+				data-load
+				hidden
+				class="glow inline-flex items-center gap-2.5 rounded-full bg-accent px-7 py-3.5 text-xs font-medium tracking-[0.16em] text-on-accent uppercase transition duration-200 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none"
+			>
+				<Icon name="material-symbols:view-in-ar-rounded" class="size-5" aria-hidden="true" />
+				{showcase.load}
+			</button>
+		</div>
+
+		{[0, 1, 2].map(() => <span class="dim" aria-hidden="true" />)}
+	</figure>
+
+	<ol class="steps grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-1 lg:gap-3">
+		{
+			steps.map((s, i) => (
+				<li class="step relative rounded-2xl border border-rule bg-paper-2 p-6 transition duration-300 ease-emphasized hover:-translate-y-1 hover:border-accent/60 hover:shadow-[0_0_2.5rem_-0.5rem_var(--glow)] lg:px-5 lg:py-4">
+					<div class="mb-4 flex items-center justify-between gap-3 lg:mb-2.5">
+						<Icon name={s.icon} class="size-8 text-accent lg:size-6" aria-hidden="true" />
+						<p class="eyebrow text-muted">Бид · 0{i + 1}</p>
+					</div>
+					<h3 class="mb-1.5 text-base font-medium tracking-[0.02em] transition-colors duration-300">{s.title}</h3>
+					<p class="text-sm leading-relaxed text-muted">{s.text}</p>
+					{/* Covers the card once the stage is running; hidden until then, so no dead buttons. */}
+					<button
+						type="button"
+						hidden
+						aria-pressed="false"
+						aria-controls={id}
+						class="absolute inset-0 cursor-pointer rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+					>
+						<span class="sr-only">
+							{s.title}: {showcase.show}
+						</span>
+					</button>
+					<span class="bar" aria-hidden="true" />
+				</li>
+			))
+		}
+	</ol>
+</div>
+
+<noscript>
+	<style is:inline>
+		.model-stage { grid-template-columns: minmax(0, 1fr) !important; }
+		.model-stage > figure { display: none; }
+		@media (min-width: 64rem) { .model-stage > ol { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+	</style>
+</noscript>
+
+<style>
+	/* Without WebGL the stage goes, and the cards take the row back. */
+	.model-stage[data-state="error"] {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.model-stage[data-state="error"] .stage {
+		display: none;
+	}
+	@media (min-width: 64rem) {
+		.model-stage[data-state="error"] .steps {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	canvas {
+		opacity: 0;
+		transition: opacity 700ms var(--ease-standard);
+	}
+	.model-stage[data-state="ready"] canvas {
+		opacity: 1;
+	}
+	.status {
+		transition:
+			opacity 400ms var(--ease-standard),
+			visibility 400ms;
+	}
+	.model-stage[data-state="ready"] .status {
+		visibility: hidden;
+		opacity: 0;
+	}
+	.model-stage[data-state="waiting"] .loading {
+		display: none;
+	}
+	.progress {
+		transform: scaleX(0);
+		transition: transform 200ms linear;
+	}
+	.hint {
+		opacity: 0;
+		transition: opacity 600ms var(--ease-standard);
+	}
+	.model-stage[data-state="ready"]:not([data-dragged]) .hint {
+		opacity: 1;
+	}
+
+	/* Width / depth / height, placed over their dimension lines by the stage. */
+	.dim {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 1;
+		padding: 0.125rem 0.5rem;
+		border: 1px solid color-mix(in oklab, var(--color-accent) 45%, transparent);
+		border-radius: 9999px;
+		background: color-mix(in oklab, var(--color-paper-2) 85%, transparent);
+		color: var(--color-accent);
+		font-size: 0.65rem;
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.12em;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	/* The card whose phase is on the stage. */
+	.step[data-active] {
+		border-color: var(--color-accent);
+		box-shadow: 0 0 2.5rem -0.75rem var(--glow);
+	}
+	.step[data-active] h3 {
+		color: var(--color-accent);
+	}
+	/* While touring, a line along the card's lower edge counts down to the next step. */
+	.bar {
+		position: absolute;
+		right: 1.25rem;
+		bottom: -1px;
+		left: 1.25rem;
+		height: 2px;
+		border-radius: 1px;
+		background: var(--color-accent);
+		box-shadow: 0 0 0.75rem var(--glow);
+		opacity: 0;
+		transform: scaleX(0);
+		transform-origin: left;
+	}
+	.model-stage[data-touring] .step[data-active] .bar {
+		opacity: 1;
+		animation: dwell var(--dwell, 6s) linear forwards;
+	}
+	@keyframes dwell {
+		to {
+			transform: scaleX(1);
+		}
+	}
+</style>
+
+<script>
+	import type { Stage } from "../scripts/model-stage";
+
+	document.querySelectorAll<HTMLElement>(".model-stage").forEach((root) => {
+		const canvas = root.querySelector("canvas");
+		const url = root.dataset.model;
+		if (!canvas || !url) return;
+		const steps = [...root.querySelectorAll<HTMLElement>(".step")];
+		const buttons = steps.map((s) => s.querySelector("button")!);
+		const titles = steps.map((s) => s.querySelector("h3")?.textContent ?? "");
+		const caption = root.querySelector("[data-caption]");
+		const figcaption = root.querySelector("figcaption");
+		const hint = root.querySelector<HTMLElement>(".hint");
+		const progress = root.querySelector<HTMLElement>(".progress");
+		const labels = [...root.querySelectorAll<HTMLElement>(".dim")];
+		const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+		const saveData = (navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
+
+		let stage: Stage | undefined;
+		let current = 0;
+		let touring = !still; // plays the steps in turn until the visitor takes over
+		let inView = false;
+		let begun = false;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+
+		const show = (i: number) => {
+			current = i;
+			begun = true;
+			steps.forEach((s) => s.removeAttribute("data-active"));
+			void steps[i].offsetWidth; // restart the countdown bar
+			steps[i].setAttribute("data-active", "");
+			buttons.forEach((b, n) => b.setAttribute("aria-pressed", String(n === i)));
+			if (caption) caption.textContent = `0${i + 1} · ${titles[i]}`;
+			const seconds = stage?.setPhase(i) ?? 0;
+			clearTimeout(timer);
+			if (!touring || !inView) return;
+			// The finished kitchen stays up longest before the tour rewinds.
+			const hold = seconds + (i === steps.length - 1 ? 5 : 2);
+			steps[i].style.setProperty("--dwell", `${hold}s`);
+			timer = setTimeout(() => show((i + 1) % steps.length), hold * 1000);
+		};
+		const takeOver = () => {
+			touring = false;
+			root.removeAttribute("data-touring");
+			clearTimeout(timer);
+		};
+
+		steps.forEach((s, i) => {
+			buttons[i].addEventListener("click", () => {
+				takeOver();
+				show(i);
+				// On a phone the cards sit below the stage: bring it back to show the step.
+				const r = canvas.getBoundingClientRect();
+				if (r.top < 0 || r.bottom > innerHeight) canvas.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
+			});
+			// A short hover intent, so cards merely scrolled under the pointer don't count.
+			let intent: ReturnType<typeof setTimeout> | undefined;
+			s.addEventListener("pointerenter", (e) => {
+				if (e.pointerType !== "mouse" || !stage) return;
+				intent = setTimeout(() => {
+					takeOver();
+					if (i !== current) show(i);
+				}, 150);
+			});
+			s.addEventListener("pointerleave", () => clearTimeout(intent));
+		});
+
+		// Render only while on screen; begin (and resume the tour) once a good part shows.
+		new IntersectionObserver(
+			([e]) => {
+				stage?.setVisible(e.isIntersecting);
+				const was = inView;
+				inView = e.intersectionRatio >= 0.25;
+				if (!stage || inView === was) return;
+				if (!inView) clearTimeout(timer);
+				else if (!begun) show(still ? 1 : 0); // without motion, open on the drawing itself
+				else if (touring) show(current);
+			},
+			{ threshold: [0, 0.25] },
+		).observe(canvas);
+
+		const start = async () => {
+			root.dataset.state = "loading";
+			try {
+				const { createStage } = await import("../scripts/model-stage");
+				stage = await createStage(canvas, url, {
+					labels,
+					still,
+					onProgress: (f) => progress?.style.setProperty("transform", `scaleX(${f})`),
+					onDrag: () => {
+						root.setAttribute("data-dragged", "");
+						takeOver();
+					},
+					// Keep the model clear of the caption above it and the hint below.
+					insets: () => ({
+						top: figcaption ? figcaption.offsetTop + figcaption.offsetHeight + 8 : 0,
+						bottom: hint ? canvas.clientHeight - hint.offsetTop + 4 : 0,
+					}),
+				});
+			} catch (error) {
+				console.error(error);
+				root.dataset.state = "error";
+				return;
+			}
+			root.dataset.state = "ready";
+			buttons.forEach((b) => (b.hidden = false));
+			if (touring) root.setAttribute("data-touring", "");
+			const rect = canvas.getBoundingClientRect();
+			stage.setVisible(rect.bottom > 0 && rect.top < innerHeight);
+			if (inView && !begun) show(still ? 1 : 0);
+		};
+
+		if (saveData) {
+			root.dataset.state = "waiting";
+			const load = root.querySelector<HTMLButtonElement>("[data-load]");
+			if (load) {
+				load.hidden = false;
+				load.addEventListener("click", start, { once: true });
+			}
+		} else {
+			const near = new IntersectionObserver(
+				([e]) => {
+					if (!e.isIntersecting) return;
+					near.disconnect();
+					start();
+				},
+				{ rootMargin: "600px 0px" },
+			);
+			near.observe(root);
+		}
+	});
+</script>

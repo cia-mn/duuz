@@ -38,6 +38,21 @@ photo renders as a plate, several as a contact sheet that fills the card width. 
 photo opens the card's own lightbox; a photo that is also a gallery tile brings that
 tile's caption along, and its clip if it has one.
 
+**Changing the 3D model:** the stage beside the services steps shows `showcase.model` from
+`src/content.ts` — a `.glb` built from a SketchUp export. In SketchUp use *File → Export →
+3D Model → COLLADA (.dae)* with *Export edges* and *Export texture maps* ticked (the edges
+are what glows), and *Export only selection set* to leave the walls and ceiling out. Put
+the `.dae` and its texture folder in `sketchup/`, then:
+
+```bash
+npm run model -- sketchup/vildwert.dae src/assets/models/vildwert.glb --drop group_51,group_52
+```
+
+It prints the model's top-level groups with their sizes; `--drop` removes the ones that
+hide the furniture (here the room's walls and ceiling). Cameras, TSE clipping boxes and
+stray edges go on their own. Import the new file with `?url` in `content.ts` and point
+`showcase.model` at it. The measurements in the Хэмжилт step are the model's own size.
+
 Icon names come from [Material Symbols](https://icon-sets.iconify.design/material-symbols/)
 and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 
@@ -51,6 +66,10 @@ and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 | `src/components/Gallery.astro` | Masonry grid with clip tiles |
 | `src/components/Timeline.astro` | Filterable timeline with rail, markers and reveal-on-scroll |
 | `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each timeline card |
+| `src/components/ModelStage.astro` | Services steps beside the 3D stage: tour, lazy loading, fallbacks |
+| `src/scripts/model-stage.ts` | The 3D stage (three.js): glowing edges, build-up, bloom, camera |
+| `scripts/model.mjs` | SketchUp `.dae` → compressed `.glb` for the stage (`npm run model`) |
+| `sketchup/` | SketchUp exports the models are built from; not deployed |
 | `src/layouts/Layout.astro` | Head tags, header, footer, dark-mode toggle |
 | `src/styles/global.css` | Design tokens (colours, fonts, easings) |
 
@@ -73,6 +92,16 @@ slowly. Swap `src/assets/hero-banner.jpg` to change it (keep it wide, ~21:9). Th
 `src/assets/logo-mark.png`, black on transparent: the hero uses it as a mask and paints it
 ivory to champagne. `dark` on the hero pins the dark tokens, so it reads the same in both
 themes.
+
+The services steps drive a three.js stage that plays them out on a real project: the room's
+box drawn and dimensioned, the SketchUp edges drawing themselves floor to ceiling, the
+panels rising as raw clay behind a line of light, then the finishes. Edges glow on the dark
+theme and read as ink on paper; only the edges and the build line bloom, so lit surfaces
+keep their true colour. On screen the stage tours the steps; hovering or clicking a card,
+or dragging the model, hands over control. three.js (~170 KB gzipped) and the ~1 MB model
+load only as the section comes near, behind a button under Save-Data. Under reduced motion
+the stage opens on the drawing, with no tour and no sway. Without WebGL the cards stand
+alone. How each effect is made is written up at the top of `src/scripts/model-stage.ts`.
 
 The timeline is a port of [Shirone](https://github.com/LyraVoid/Shirone)'s Material 3
 Expressive `TimelineSection` — rail, marker, featured ring, filter chips and staggered

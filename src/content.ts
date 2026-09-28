@@ -45,6 +45,8 @@ import wardrobeRoundHandlesClip from "./assets/work/wardrobe-round-handles.mp4";
 import shopArchedVitrinesClip from "./assets/work/shop-arched-vitrines.mp4";
 import shopDisplayCounterClip from "./assets/work/shop-display-counter.mp4";
 import shopWalkthroughClip from "./assets/work/shop-walkthrough.mp4";
+// The services stage's model: a SketchUp export run through `npm run model` (see README).
+import vildwertModel from "./assets/models/vildwert.glb?url";
 
 export interface Work {
 	image: ImageMetadata;
@@ -57,6 +59,26 @@ export interface Category {
 	key: string;
 	label: string;
 	icon: string;
+}
+
+export interface Step {
+	icon: string;
+	title: string;
+	text: string;
+}
+
+export interface Showcase {
+	/** URL of the .glb that `npm run model` wrote. */
+	model: string;
+	eyebrow: string;
+	/** What the canvas shows, for screen readers. */
+	label: string;
+	hint: string;
+	loading: string;
+	/** Button that loads the model when the browser asks to save data. */
+	load: string;
+	/** Read after a step's title on its button, for screen readers. */
+	show: string;
 }
 
 export interface TimelineItem {
@@ -87,7 +109,7 @@ export const site = {
 	description:
 		"Улаанбаатар хотод захиалгат гал тогоо, хувцасны шүүгээ, ТВ хана, үүдний тавилга зохиомжилж үйлдвэрлэдэг. Euromat, Kronospan, Blum материал.",
 	tagline:
-		"Захиалгат гал тогоо, шүүгээ, ТВ хана. Хэмжилтээс суурилуулалт хүртэл бүх зүйлийг нэг багаар.",
+		"Захиалгат гал тогоо, шүүгээ, ТВ хана. Хэмжилтээс суурилуулалт хүртэл бүх зүйлийг нэг дор.",
 	servicesIntro:
 		"Хэмжилт, зураг төсөл, үйлдвэрлэл, суурилуулалт — бүгдийг нь бид хийж өгнө. Та зөвхөн хүссэнээ хэлэхэд л хангалттай.",
 	timelineIntro: "Сүүлд эзэндээ хүлээлгэн өгсөн ажлууд, он сар дарааллаар.",
@@ -141,7 +163,7 @@ export const works: Work[] = [
 ];
 
 /** What happens after an order, in the order it happens. */
-export const steps = [
+export const steps: Step[] = [
 	{
 		icon: "material-symbols:straighten-rounded",
 		title: "Хэмжилт",
@@ -163,6 +185,20 @@ export const steps = [
 		text: "Хүргэж, суурилуулж, цэвэрлээд бэлэн болсон тавилгыг хүлээлгэн өгнө.",
 	},
 ];
+
+/**
+ * The 3D stage beside the steps: one project's SketchUp model shown measured,
+ * drawn in glowing edges, built, and finished — one phase for each step.
+ */
+export const showcase: Showcase = {
+	model: vildwertModel,
+	eyebrow: "3D загвар",
+	label: "Гал тогооны 3D загвар: хэмжилт, зураг төсөл, үйлдвэрлэл, суурилуулалт",
+	hint: "Чирж эргүүлнэ үү",
+	loading: "Ачаалж байна",
+	load: "3D загварыг үзэх",
+	show: "3D загвар дээр харах",
+};
 
 export const categories: Category[] = [
 	{ key: "kitchen", label: "Гал тогоо", icon: "material-symbols:countertops-rounded" },
