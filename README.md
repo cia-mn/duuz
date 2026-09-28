@@ -97,8 +97,11 @@ The services steps drive a three.js stage that plays them out on a real project:
 box drawn and dimensioned, the SketchUp edges drawing themselves floor to ceiling, the
 panels rising as raw clay behind a line of light, then the finishes. Edges glow on the dark
 theme and read as ink on paper; only the edges and the build line bloom, so lit surfaces
-keep their true colour. On screen the stage tours the steps; hovering or clicking a card,
-or dragging the model, hands over control. three.js (~170 KB gzipped) and the ~1 MB model
+keep their true colour. Side by side (desktop), the stage tours the steps while on screen;
+hovering or clicking a card, or dragging the model, hands over control. Stacked (phones,
+tablets), the stage pins under the header and follows the scroll instead: the cards pass
+beneath it, and the kitchen draws, builds and finishes with them, backwards on the way
+up; tapping a card scrolls to it. three.js (~170 KB gzipped) and the ~1 MB model
 load only as the section comes near, behind a button under Save-Data. Under reduced motion
 the stage opens on the drawing, with no tour and no sway. Without WebGL the cards stand
 alone. How each effect is made is written up at the top of `src/scripts/model-stage.ts`.

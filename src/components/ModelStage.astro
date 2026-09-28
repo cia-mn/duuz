@@ -4,9 +4,12 @@
  * project's SketchUp model — the room measured, the design drawn in glowing
  * edges, the panels built, the finishes on (src/scripts/model-stage.ts).
  *
- * On screen, the stage plays the steps in turn, a bar on the active card
- * counting down to the next. Hovering or clicking a card, or turning the
- * model, hands the controls to the visitor and stops the tour.
+ * Side by side (lg and up), the stage plays the steps in turn while on
+ * screen, a bar on the active card counting down to the next; hovering or
+ * clicking a card, or turning the model, hands the controls to the visitor.
+ * Stacked (phones, tablets), the stage pins under the header instead and the
+ * scroll drives it: the cards pass beneath, and the model draws, builds and
+ * finishes with them — backwards on the way up.
  *
  * three.js and the ~1 MB model load only as the section comes near, and only
  * on request under Save-Data. Without JS or WebGL the cards stand alone.
@@ -109,6 +112,27 @@ const { steps, showcase, id = "stage" } = Astro.props;
 		}
 	}
 
+	/* Stacked and scrolled: the stage pins under the header while the cards pass
+	   below it, spaced so each phase gets half a screen of scroll. A block, not a
+	   grid: a sticky grid item cannot leave its own row. */
+	.model-stage[data-scroll] {
+		display: block;
+	}
+	.model-stage[data-scroll] .stage {
+		position: sticky;
+		top: 5rem; /* clear of the sticky header, like anchor targets */
+		z-index: 10;
+		max-height: 50svh;
+		/* A ring of page colour: cards vanish into it as they slide under the stage. */
+		box-shadow: 0 0 0 0.75rem var(--color-paper);
+	}
+	.model-stage[data-scroll] .steps {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 30svh;
+		margin-top: 1.5rem;
+		padding-bottom: 10svh;
+	}
+
 	canvas {
 		opacity: 0;
 		transition: opacity 700ms var(--ease-standard);
@@ -198,8 +222,9 @@ const { steps, showcase, id = "stage" } = Astro.props;
 
 	document.querySelectorAll<HTMLElement>(".model-stage").forEach((root) => {
 		const canvas = root.querySelector("canvas");
+		const figure = root.querySelector<HTMLElement>(".stage");
 		const url = root.dataset.model;
-		if (!canvas || !url) return;
+		if (!canvas || !figure || !url) return;
 		const steps = [...root.querySelectorAll<HTMLElement>(".step")];
 		const buttons = steps.map((s) => s.querySelector("button")!);
 		const titles = steps.map((s) => s.querySelector("h3")?.textContent ?? "");
@@ -211,21 +236,32 @@ const { steps, showcase, id = "stage" } = Astro.props;
 		const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 		const saveData = (navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
 
+		// Cards stacked under the stage (below lg): the stage pins and the scroll drives it.
+		const stacked = matchMedia("(max-width: 63.99rem)");
+
 		let stage: Stage | undefined;
 		let current = 0;
-		let touring = !still; // plays the steps in turn until the visitor takes over
+		let scrolling = false;
+		let touring = false; // side by side: plays the steps in turn until the visitor takes over
+		let visible = false;
 		let inView = false;
 		let begun = false;
 		let timer: ReturnType<typeof setTimeout> | undefined;
 
-		const show = (i: number) => {
+		// The card on stage: highlighted, pressed, and named in the caption.
+		const mark = (i: number) => {
 			current = i;
 			begun = true;
 			steps.forEach((s) => s.removeAttribute("data-active"));
-			void steps[i].offsetWidth; // restart the countdown bar
+			if (touring) void steps[i].offsetWidth; // restart the countdown bar
 			steps[i].setAttribute("data-active", "");
 			buttons.forEach((b, n) => b.setAttribute("aria-pressed", String(n === i)));
 			if (caption) caption.textContent = `0${i + 1} · ${titles[i]}`;
+		};
+
+		// Timed: animate to a step, and while touring queue the next one.
+		const show = (i: number) => {
+			mark(i);
 			const seconds = stage?.setPhase(i) ?? 0;
 			clearTimeout(timer);
 			if (!touring || !inView) return;
@@ -240,18 +276,67 @@ const { steps, showcase, id = "stage" } = Astro.props;
 			clearTimeout(timer);
 		};
 
+		// Scrolled: the phase is where the cards stand against the middle of the
+		// space below the stage. Card n centred there is phase n; halfway between
+		// two cards is halfway between their phases.
+		const line = (stageBottom: number) => (stageBottom + innerHeight) / 2;
+		const middle = (el: HTMLElement) => {
+			const r = el.getBoundingClientRect();
+			return r.top + r.height / 2;
+		};
+		const position = () => {
+			const focus = line(canvas.getBoundingClientRect().bottom);
+			const centres = steps.map(middle);
+			if (focus <= centres[0]) return 0;
+			for (let i = 1; i < centres.length; i++) {
+				if (focus < centres[i]) return i - 1 + (focus - centres[i - 1]) / (centres[i] - centres[i - 1]);
+			}
+			return centres.length - 1;
+		};
+		let queued = 0;
+		const follow = () => {
+			queued = 0;
+			if (!stage || !scrolling || !visible) return;
+			const at = position();
+			stage.setProgress(at);
+			if (Math.round(at) !== current || !begun) mark(Math.round(at));
+		};
+		const onScroll = () => {
+			if (!queued) queued = requestAnimationFrame(follow);
+		};
+		const layout = () => {
+			scrolling = stacked.matches;
+			root.toggleAttribute("data-scroll", scrolling);
+			if (scrolling) {
+				takeOver();
+				addEventListener("scroll", onScroll, { passive: true });
+				addEventListener("resize", onScroll);
+				onScroll();
+			} else {
+				removeEventListener("scroll", onScroll);
+				removeEventListener("resize", onScroll);
+				if (stage && begun) show(current);
+			}
+		};
+
 		steps.forEach((s, i) => {
 			buttons[i].addEventListener("click", () => {
+				if (scrolling) {
+					// Bring the card to the line where it drives the stage; the scroll does the rest.
+					const pinned = parseFloat(getComputedStyle(figure).top) + figure.offsetHeight;
+					scrollBy({ top: middle(s) - line(pinned), behavior: still ? "auto" : "smooth" });
+					return;
+				}
 				takeOver();
 				show(i);
-				// On a phone the cards sit below the stage: bring it back to show the step.
+				// A short window can leave the stage half off screen: bring it back.
 				const r = canvas.getBoundingClientRect();
 				if (r.top < 0 || r.bottom > innerHeight) canvas.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
 			});
 			// A short hover intent, so cards merely scrolled under the pointer don't count.
 			let intent: ReturnType<typeof setTimeout> | undefined;
 			s.addEventListener("pointerenter", (e) => {
-				if (e.pointerType !== "mouse" || !stage) return;
+				if (e.pointerType !== "mouse" || !stage || scrolling) return;
 				intent = setTimeout(() => {
 					takeOver();
 					if (i !== current) show(i);
@@ -260,13 +345,16 @@ const { steps, showcase, id = "stage" } = Astro.props;
 			s.addEventListener("pointerleave", () => clearTimeout(intent));
 		});
 
-		// Render only while on screen; begin (and resume the tour) once a good part shows.
+		// Render only while on screen. Side by side, begin (and resume the tour) once a good part shows.
 		new IntersectionObserver(
 			([e]) => {
-				stage?.setVisible(e.isIntersecting);
+				visible = e.isIntersecting;
+				stage?.setVisible(visible);
 				const was = inView;
 				inView = e.intersectionRatio >= 0.25;
-				if (!stage || inView === was) return;
+				if (!stage) return;
+				if (scrolling) return follow();
+				if (inView === was) return;
 				if (!inView) clearTimeout(timer);
 				else if (!begun) show(still ? 1 : 0); // without motion, open on the drawing itself
 				else if (touring) show(current);
@@ -276,6 +364,9 @@ const { steps, showcase, id = "stage" } = Astro.props;
 
 		const start = async () => {
 			root.dataset.state = "loading";
+			touring = !still && !stacked.matches;
+			layout();
+			stacked.addEventListener("change", layout);
 			try {
 				const { createStage } = await import("../scripts/model-stage");
 				stage = await createStage(canvas, url, {
@@ -295,14 +386,20 @@ const { steps, showcase, id = "stage" } = Astro.props;
 			} catch (error) {
 				console.error(error);
 				root.dataset.state = "error";
+				stacked.removeEventListener("change", layout);
+				removeEventListener("scroll", onScroll);
+				removeEventListener("resize", onScroll);
+				root.removeAttribute("data-scroll");
 				return;
 			}
 			root.dataset.state = "ready";
 			buttons.forEach((b) => (b.hidden = false));
 			if (touring) root.setAttribute("data-touring", "");
 			const rect = canvas.getBoundingClientRect();
-			stage.setVisible(rect.bottom > 0 && rect.top < innerHeight);
-			if (inView && !begun) show(still ? 1 : 0);
+			visible = rect.bottom > 0 && rect.top < innerHeight;
+			stage.setVisible(visible);
+			if (scrolling) follow();
+			else if (inView && !begun) show(still ? 1 : 0);
 		};
 
 		if (saveData) {

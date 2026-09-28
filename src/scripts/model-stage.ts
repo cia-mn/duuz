@@ -7,6 +7,9 @@
  *   2 build    the panels rise out of the drawing as raw "clay"
  *   3 install  the real materials; the edges sink back into them
  *
+ * Either timed (setPhase tweens from one phase to the next) or following the
+ * page's scroll (setProgress: fractions sit between phases).
+ *
  * How the effects are made:
  * - Draw-on. The edges are one LineSegments. Each vertex knows the other end
  *   of its segment and when the segment starts; the vertex shader slides the
@@ -44,6 +47,8 @@ export interface StageOptions {
 export interface Stage {
 	/** Animates to a phase and returns the seconds until it has settled. */
 	setPhase(index: number): number;
+	/** Follows a scroll position instead: 0 is the first phase, 3 the last, fractions in between. */
+	setProgress(progress: number): void;
 	/** Rendering runs only while the stage is on screen. */
 	setVisible(visible: boolean): void;
 }
@@ -61,6 +66,24 @@ const PHASES: Phase[] = [
 
 /** Seconds a full 0 → 1 change of each value takes. */
 const SECONDS: Record<Key, number> = { dims: 1.8, draw: 2.8, build: 2.4, finish: 1.4, edge: 1.2, bloom: 1.2 };
+
+/**
+ * Scroll-driven: where within the scroll from one phase to the next each value
+ * changes. The dimensions clear before the drawing starts, and every phase
+ * holds for a stretch around its own card.
+ */
+const SCRUB: Record<keyof Phase, [number, number]> = {
+	dims: [0.1, 0.45],
+	draw: [0.3, 0.85],
+	build: [0.15, 0.85],
+	finish: [0.15, 0.85],
+	edge: [0.15, 0.85],
+	bloom: [0.15, 0.85],
+	yaw: [0, 1],
+	pitch: [0, 1],
+	zoom: [0, 1],
+};
+const KEYS: Key[] = ["dims", "draw", "build", "finish", "edge", "bloom"];
 
 /** Raw panels, before the finishes: light enough on paper for the edges to read as ink. */
 const CLAY = { dark: new THREE.Color("#8c847a"), light: new THREE.Color("#d8d1c6") };
@@ -280,9 +303,17 @@ export async function createStage(canvas: HTMLCanvasElement, url: string, option
 	const value: Record<Key, number> = { dims: 0, draw: 0, build: 0, finish: 0, edge: 1, bloom: 1 };
 	const tweens = new Map<Key, { from: number; to: number; start: number; seconds: number }>();
 	let phase = -1;
+	let scrub: number | undefined; // set while the scroll drives the stage
+	const sample = (key: keyof Phase, at: number) => {
+		const i = Math.min(Math.floor(at), PHASES.length - 2);
+		const [from, to] = SCRUB[key];
+		return THREE.MathUtils.lerp(PHASES[i][key], PHASES[i + 1][key], THREE.MathUtils.smoothstep(at - i, from, to));
+	};
+	const goal = (key: "yaw" | "pitch" | "zoom") => (scrub === undefined ? PHASES[Math.max(phase, 0)][key] : sample(key, scrub));
 	const now = () => performance.now() / 1000;
 	const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 	const setPhase = (index: number) => {
+		scrub = undefined;
 		const next = PHASES[index];
 		const forward = index >= phase;
 		const order: [Key, number][] =
@@ -323,12 +354,11 @@ export async function createStage(canvas: HTMLCanvasElement, url: string, option
 		dirty = true;
 	};
 	const placeCamera = (t: number) => {
-		const p = PHASES[Math.max(phase, 0)];
 		const k = still ? 1 : 1 - Math.exp(-dt * 2.5);
 		const sway = still ? 0 : Math.sin(t * 0.35) * 0.06;
-		view.yaw += (p.yaw + turn.yaw + sway - view.yaw) * k;
-		view.pitch += (p.pitch + turn.pitch - view.pitch) * k;
-		view.zoom += (p.zoom - view.zoom) * k;
+		view.yaw += (goal("yaw") + turn.yaw + sway - view.yaw) * k;
+		view.pitch += (goal("pitch") + turn.pitch - view.pitch) * k;
+		view.zoom += (goal("zoom") - view.zoom) * k;
 
 		// The fitted box grows to take in the dimension lines while they show.
 		const grow = value.dims * (dims.margin + 0.1);
@@ -412,6 +442,18 @@ export async function createStage(canvas: HTMLCanvasElement, url: string, option
 		last = t;
 
 		let moving = !still || dirty;
+		if (scrub !== undefined) {
+			// Ease towards where the scroll says each value should be, so a flick glides.
+			const k = still ? 1 : 1 - Math.exp(-dt * 5);
+			for (const key of KEYS) {
+				const target = sample(key, scrub);
+				if (Math.abs(target - value[key]) < 1e-4) value[key] = target;
+				else {
+					value[key] += (target - value[key]) * k;
+					moving = true;
+				}
+			}
+		}
 		for (const [key, tw] of tweens) {
 			const p = tw.seconds > 0 ? THREE.MathUtils.clamp((t - tw.start) / tw.seconds, 0, 1) : 1;
 			value[key] = tw.from + (tw.to - tw.from) * ease(p);
@@ -420,7 +462,7 @@ export async function createStage(canvas: HTMLCanvasElement, url: string, option
 		}
 		const on = torch.on;
 		torch.on += (torch.target - torch.on) * (1 - Math.exp(-dt * 8));
-		if (Math.abs(torch.on - on) > 1e-3 || drag || Math.abs(turn.yaw + PHASES[Math.max(phase, 0)].yaw - view.yaw) > 1e-3) moving = true;
+		if (Math.abs(torch.on - on) > 1e-3 || drag || Math.abs(turn.yaw + goal("yaw") - view.yaw) > 1e-3) moving = true;
 		if (!moving) return; // settled and still: leave the last frame up
 		dirty = false;
 
@@ -457,6 +499,11 @@ export async function createStage(canvas: HTMLCanvasElement, url: string, option
 
 	return {
 		setPhase,
+		setProgress(progress) {
+			scrub = THREE.MathUtils.clamp(progress, 0, PHASES.length - 1);
+			tweens.clear();
+			dirty = true;
+		},
 		setVisible(on) {
 			visible = on;
 			last = now();
