@@ -46,6 +46,17 @@ const year = new Date().getFullYear();
 			(function () {
 				document.documentElement.classList.toggle("dark", localStorage.getItem("theme") !== "light");
 			})();
+			// Photos marked `data-reveal` get `data-loaded` once their file is in, and
+			// CSS fades them in over their preview. `load` doesn't bubble, but caught
+			// on the way down from here — before any <img> exists — none is missed.
+			document.addEventListener(
+				"load",
+				function (e) {
+					var img = e.target;
+					if (img instanceof HTMLImageElement && img.hasAttribute("data-reveal")) img.setAttribute("data-loaded", "");
+				},
+				true,
+			);
 		</script>
 	</head>
 	<body class="flex min-h-screen flex-col">

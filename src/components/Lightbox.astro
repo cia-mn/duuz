@@ -58,7 +58,7 @@ const many = items.length > 1;
 							aria-label={w.title}
 						/>
 					) : (
-						<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" />
+						<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" data-reveal="fade" />
 					)}
 					<figcaption>
 						{w.title}

@@ -4,6 +4,9 @@
  * a little grain, pushed in slowly — under the logo mark. The calls to action
  * come in through the default slot.
  *
+ * While the banner downloads, its blurred miniature (preview.ts) rises out of
+ * the dark first; the push-in waits for the banner itself, then plays over it.
+ *
  * `dark` pins the dark tokens inside, so the frame reads the same in both
  * themes; `--color-rule` is lifted to a translucent white so the quiet buttons
  * still outline on the photo. Every animation sits behind reduced motion and
@@ -13,12 +16,14 @@ import { Image, getImage } from "astro:assets";
 import banner from "../assets/hero-banner.jpg";
 import logoMark from "../assets/logo-mark.png";
 import { site } from "../content";
+import { preview } from "./preview";
 
 // Black mark on transparent: used as a mask, so CSS decides its colour.
 const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
+const blurred = await preview(banner);
 ---
 
-<section id="top" class="cine dark">
+<section id="top" class="cine dark" style={`--preview: ${blurred}`}>
 	<Image
 		src={banner}
 		alt=""
@@ -27,6 +32,7 @@ const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
 		loading="eager"
 		fetchpriority="high"
 		class="still"
+		data-reveal
 	/>
 	<div class="grade" aria-hidden="true"></div>
 
@@ -61,6 +67,14 @@ const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
 		color: var(--color-ink);
 	}
 
+	/* The banner's blurred miniature, under the banner, until it arrives. */
+	.cine::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -3;
+		background: var(--preview) 50% 50% / cover no-repeat;
+	}
 	.still {
 		position: absolute;
 		inset: 0;
@@ -74,6 +88,9 @@ const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
 		/* Phones see one shot of the four: frame the black hood and the marble. */
 		.still {
 			object-position: 68% 50%;
+		}
+		.cine::before {
+			background-position: 68% 50%;
 		}
 	}
 
@@ -189,6 +206,9 @@ const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
+		.cine::before {
+			animation: cine-preview 1.2s var(--ease-standard) both;
+		}
 		.still {
 			animation:
 				cine-in 2.8s var(--ease-emphasized) both,
@@ -211,6 +231,18 @@ const logo = await getImage({ src: logoMark, width: 720, format: "webp" });
 		}
 		.cue span {
 			animation: cine-cue 2.6s var(--ease-standard) 2.4s infinite both;
+		}
+	}
+	/* `data-loaded` comes from Layout.astro's load listener; without script the
+	   push-in just plays. */
+	@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+		.still:not([data-loaded]) {
+			animation-play-state: paused;
+		}
+	}
+	@keyframes cine-preview {
+		from {
+			opacity: 0;
 		}
 	}
 	@keyframes cine-in {

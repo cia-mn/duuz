@@ -86,6 +86,12 @@ pulsing call button and the hover shadows; every animation sits behind
 `prefers-reduced-motion: no-preference`, and clips do not autoplay under reduced motion or
 Save-Data.
 
+Photos load in over a preview: every photo's 32px miniature, blurred, is inlined in the
+page (`src/components/preview.ts`, ~200 bytes each), so a card starts dark, fills with the
+blurred miniature at once, and the photo fades in over it when its file arrives; the blur
+seems to clear. The hero's banner does the same, its push-in waiting for the real file.
+Only opacity animates, and without script nothing is hidden.
+
 The hero is the studio's banner graded like a film still — dark pool behind the logo,
 vignette, grain, a fade into the page — that fades up from black and then pushes in
 slowly. Swap `src/assets/hero-banner.jpg` to change it (keep it wide, ~21:9). The logo is

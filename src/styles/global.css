@@ -126,4 +126,32 @@
 			opacity: 1;
 		}
 	}
+
+	/* Photos load in over a preview (src/components/preview.ts): the card starts
+	   dark, the photo's blurred miniature fills it at once, and the photo itself
+	   fades in once its file is in, so the blur seems to clear. The blur is baked
+	   into the miniature and only opacity animates, so phones scroll smoothly. */
+	.preview {
+		--dim: color-mix(in oklab, var(--color-paper-2) 40%, transparent);
+		background:
+			linear-gradient(var(--dim), var(--dim)),
+			var(--preview) center / cover no-repeat;
+	}
+	/* `data-loaded` comes from the load listener in Layout.astro; without script
+	   nothing is hidden. */
+	@media (scripting: enabled) {
+		img[data-reveal="fade"]:not([data-loaded]) {
+			opacity: 0;
+		}
+	}
+	@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+		img[data-reveal="fade"][data-loaded] {
+			animation: reveal 0.8s var(--ease-standard);
+		}
+	}
+	@keyframes reveal {
+		from {
+			opacity: 0;
+		}
+	}
 }

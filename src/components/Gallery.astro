@@ -11,6 +11,7 @@ import { Icon } from "astro-icon/components";
 import type { Work } from "../content";
 import Lightbox from "./Lightbox.astro";
 import { fullSize } from "./fullSize";
+import { preview } from "./preview";
 
 interface Props {
 	items: Work[];
@@ -19,6 +20,7 @@ interface Props {
 
 const { items, id = "works" } = Astro.props;
 const full = await Promise.all(items.map((w) => fullSize(w.image)));
+const previews = await Promise.all(items.map((w) => preview(w.image)));
 // The native width must be in the srcset: once `w` descriptors exist browsers
 // ignore `src`, so a 640px photo would otherwise always render from the 360px file.
 const widths = (w: number) => [...[360, 720, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
@@ -36,7 +38,7 @@ const lightbox = `${id}-lightbox`;
 					data-index={i}
 					class="item group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-rule/60 bg-paper-2 transition duration-300 hover:border-accent/60 hover:shadow-[0_0_2rem_-0.25rem_var(--glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:mb-6"
 				>
-					<span class="relative block">
+					<span class="preview relative block" style={`--preview: ${previews[i]}`}>
 						<Image
 							src={w.image}
 							widths={widths(w.image.width)}
@@ -45,6 +47,7 @@ const lightbox = `${id}-lightbox`;
 							alt={w.title}
 							loading={i < 4 ? "eager" : "lazy"}
 							class={`photo block h-auto w-full ${zoom}`}
+							data-reveal="fade"
 						/>
 						{w.video && (
 							<video

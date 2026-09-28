@@ -9,6 +9,7 @@ import { Icon } from "astro-icon/components";
 import type { Category, TimelineItem, Work } from "../content";
 import Lightbox from "./Lightbox.astro";
 import { fullSize } from "./fullSize";
+import { preview } from "./preview";
 
 interface Props {
 	items: TimelineItem[];
@@ -30,7 +31,8 @@ const sets = await Promise.all(
 	items.map(async (item, i) => {
 		const media = (item.images ?? []).map((image) => byImage.get(image) ?? { image, title: item.title });
 		const full = await Promise.all(media.map((m) => fullSize(m.image)));
-		return { media, hrefs: media.map((m, n) => m.video ?? full[n].src), lightbox: `${id}-${i}-lightbox` };
+		const previews = await Promise.all(media.map((m) => preview(m.image)));
+		return { media, previews, hrefs: media.map((m, n) => m.video ?? full[n].src), lightbox: `${id}-${i}-lightbox` };
 	}),
 );
 ---
@@ -123,7 +125,13 @@ const sets = await Promise.all(
 								{set.media.length > 0 && (
 								<div class="shots">
 									{set.media.map(({ image: img, video }, n) => (
-										<a href={set.hrefs[n]} class="shot" data-lightbox={set.lightbox} data-index={n}>
+										<a
+											href={set.hrefs[n]}
+											class="shot preview"
+											style={`--preview: ${set.previews[n]}`}
+											data-lightbox={set.lightbox}
+											data-index={n}
+										>
 											<Image
 												src={img}
 												widths={[...[240, 480, 720].filter((w) => w < img.width), Math.min(img.width, 960)]}
@@ -131,6 +139,7 @@ const sets = await Promise.all(
 												alt={`${item.title} — ${n + 1}`}
 												loading="lazy"
 												class="photo"
+												data-reveal="fade"
 											/>
 											{video && (
 												<span class="play">
