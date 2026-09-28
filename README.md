@@ -34,7 +34,9 @@ ffmpeg -i in.mp4 -an -vf "scale=720:1280,format=yuv420p" -c:v libx264 -crf 27 -p
 page renders the array order as-is). `category` must match a `key` in `categories`, which
 is what the filter chips are built from. Set `featured: true` for the accent ring, and list
 the job's photos in `images: []` — the same imports the gallery uses, no second copy. One
-photo renders as a plate, several as a contact sheet that fills the card width.
+photo renders as a plate, several as a contact sheet that fills the card width. Tapping a
+photo opens the card's own lightbox; a photo that is also a gallery tile brings that
+tile's caption along, and its clip if it has one.
 
 Icon names come from [Material Symbols](https://icon-sets.iconify.design/material-symbols/)
 and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
@@ -45,8 +47,10 @@ and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 | --- | --- |
 | `src/content.ts` | All copy and data |
 | `src/pages/index.astro` | Page composition: hero, gallery, services, timeline, contact |
-| `src/components/Gallery.astro` | Masonry grid with clip tiles + `<dialog>` lightbox |
+| `src/components/Hero.astro` | Cinematic top section: graded banner, logo mark, calls to action |
+| `src/components/Gallery.astro` | Masonry grid with clip tiles |
 | `src/components/Timeline.astro` | Filterable timeline with rail, markers and reveal-on-scroll |
+| `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each timeline card |
 | `src/layouts/Layout.astro` | Head tags, header, footer, dark-mode toggle |
 | `src/styles/global.css` | Design tokens (colours, fonts, easings) |
 
@@ -58,10 +62,17 @@ flips it to light; the OS preference does not get a vote. Layout and type scale 
 `paper` / `ink` neutrals with a champagne accent, light-weight Cormorant Garamond display
 over Geist body, and tracked small caps for nav, eyebrows and buttons. Both themes are the
 same OKLCH tokens in `global.css` with swapped values, so changing the brand colour is one
-line per theme and every component follows. `--glow` is the champagne bloom behind the
-hero, the pulsing call button and the hover shadows; every animation sits behind
+line per theme and every component follows. `--glow` is the champagne bloom of the
+pulsing call button and the hover shadows; every animation sits behind
 `prefers-reduced-motion: no-preference`, and clips do not autoplay under reduced motion or
 Save-Data.
+
+The hero is the studio's banner graded like a film still — dark pool behind the logo,
+vignette, grain, a fade into the page — that fades up from black and then pushes in
+slowly. Swap `src/assets/hero-banner.jpg` to change it (keep it wide, ~21:9). The logo is
+`src/assets/logo-mark.png`, black on transparent: the hero uses it as a mask and paints it
+ivory to champagne. `dark` on the hero pins the dark tokens, so it reads the same in both
+themes.
 
 The timeline is a port of [Shirone](https://github.com/LyraVoid/Shirone)'s Material 3
 Expressive `TimelineSection` — rail, marker, featured ring, filter chips and staggered

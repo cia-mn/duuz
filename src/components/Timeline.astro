@@ -6,7 +6,9 @@
  */
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
-import type { Category, TimelineItem } from "../content";
+import type { Category, TimelineItem, Work } from "../content";
+import Lightbox from "./Lightbox.astro";
+import { fullSize } from "./fullSize";
 
 interface Props {
 	items: TimelineItem[];
@@ -14,11 +16,23 @@ interface Props {
 	title: string;
 	subtitle?: string;
 	id?: string;
+	/** The gallery: a job photo that is also a tile opens with its caption and clip. */
+	works?: Work[];
 }
 
-const { items, categories, title, subtitle, id = "timeline" } = Astro.props;
+const { items, categories, title, subtitle, id = "timeline", works = [] } = Astro.props;
 const byKey = new Map(categories.map((c) => [c.key, c]));
 const active = categories.filter((c) => items.some((i) => i.category === c.key));
+
+// Each card's photos open in a lightbox of their own, so a job reads as one set.
+const byImage = new Map(works.map((w) => [w.image, w]));
+const sets = await Promise.all(
+	items.map(async (item, i) => {
+		const media = (item.images ?? []).map((image) => byImage.get(image) ?? { image, title: item.title });
+		const full = await Promise.all(media.map((m) => fullSize(m.image)));
+		return { media, hrefs: media.map((m, n) => m.video ?? full[n].src), lightbox: `${id}-${i}-lightbox` };
+	}),
+);
 ---
 
 <section id={id} class="timeline mx-auto max-w-screen-lg px-4 md:px-8">
@@ -55,6 +69,7 @@ const active = categories.filter((c) => items.some((i) => i.category === c.key))
 				items.map((item, i) => {
 					const cat = item.category ? byKey.get(item.category) : undefined;
 					const marker = item.icon ?? cat?.icon ?? "material-symbols:flag-rounded";
+					const set = sets[i];
 					return (
 						<article
 							class:list={["card", { "card--featured": item.featured, "card--last": i === items.length - 1 }]}
@@ -105,10 +120,10 @@ const active = categories.filter((c) => items.some((i) => i.category === c.key))
 									)}
 								</div>
 
-								{item.images && item.images.length > 0 && (
+								{set.media.length > 0 && (
 								<div class="shots">
-									{item.images.map((img, n) => (
-										<span class="shot">
+									{set.media.map(({ image: img, video }, n) => (
+										<a href={set.hrefs[n]} class="shot" data-lightbox={set.lightbox} data-index={n}>
 											<Image
 												src={img}
 												widths={[...[240, 480, 720].filter((w) => w < img.width), Math.min(img.width, 960)]}
@@ -117,10 +132,16 @@ const active = categories.filter((c) => items.some((i) => i.category === c.key))
 												loading="lazy"
 												class="photo"
 											/>
-										</span>
+											{video && (
+												<span class="play">
+													<Icon name="material-symbols:play-arrow-rounded" class="size-4" aria-hidden="true" />
+												</span>
+											)}
+										</a>
 									))}
 								</div>
 							)}
+								{set.media.length > 0 && <Lightbox items={set.media} id={set.lightbox} label={item.title} />}
 
 							{item.description && <p class="desc">{item.description}</p>}
 
@@ -434,9 +455,33 @@ const active = categories.filter((c) => items.some((i) => i.category === c.key))
 		gap: 0.5rem;
 	}
 	.shot {
+		position: relative;
 		overflow: hidden;
 		border: 1px solid var(--color-rule);
 		border-radius: 0.75rem;
+		cursor: zoom-in;
+		transition: border-color 150ms var(--ease-standard);
+	}
+	.shot:hover {
+		border-color: var(--color-accent);
+	}
+	.shot:focus-visible {
+		outline: 2px solid var(--color-focus);
+		outline-offset: 2px;
+	}
+	/* Same badge as the gallery's clip tiles: this photo opens as a clip. */
+	.play {
+		position: absolute;
+		top: 0.375rem;
+		right: 0.375rem;
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 9999px;
+		background: oklch(0% 0 0 / 0.45);
+		color: white;
+		backdrop-filter: blur(4px);
 	}
 	/* A lone photo is a plate, not a billboard. */
 	.shot:only-child {

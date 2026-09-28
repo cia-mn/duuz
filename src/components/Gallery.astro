@@ -1,15 +1,16 @@
 ---
 /**
- * Masonry gallery (layout + item styling from astro-art-portfolio) with a
- * native <dialog> lightbox: a scroll-snap strip gives swipe on touch, the
- * buttons / arrow keys cover desktop. No lightbox library.
+ * Masonry gallery (layout + item styling from astro-art-portfolio). Each tile
+ * opens the shared Lightbox at its own slide.
  *
  * A work with a `video` plays it muted over its photo in the grid (only while
  * on screen) and with controls in the lightbox; the photo stays the poster.
  */
-import { Image, getImage } from "astro:assets";
+import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import type { Work } from "../content";
+import Lightbox from "./Lightbox.astro";
+import { fullSize } from "./fullSize";
 
 interface Props {
 	items: Work[];
@@ -17,15 +18,12 @@ interface Props {
 }
 
 const { items, id = "works" } = Astro.props;
-const full = await Promise.all(
-	items.map((w) =>
-		getImage({ src: w.image, width: Math.min(1600, w.image.width), format: "webp", quality: 85 }),
-	),
-);
+const full = await Promise.all(items.map((w) => fullSize(w.image)));
 // The native width must be in the srcset: once `w` descriptors exist browsers
 // ignore `src`, so a 640px photo would otherwise always render from the 360px file.
 const widths = (w: number) => [...[360, 720, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
 const zoom = "transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]";
+const lightbox = `${id}-lightbox`;
 ---
 
 <section id={id} class="gallery mx-auto max-w-screen-xl px-4 md:px-8">
@@ -34,6 +32,7 @@ const zoom = "transition-transform duration-700 ease-emphasized group-hover:scal
 			items.map((w, i) => (
 				<a
 					href={w.video ?? full[i].src}
+					data-lightbox={lightbox}
 					data-index={i}
 					class="item group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-rule/60 bg-paper-2 transition duration-300 hover:border-accent/60 hover:shadow-[0_0_2rem_-0.25rem_var(--glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:mb-6"
 				>
@@ -74,191 +73,26 @@ const zoom = "transition-transform duration-700 ease-emphasized group-hover:scal
 		}
 	</div>
 
-	<dialog class="lightbox" aria-label="Зургийн үзүүлэлт">
-		<button type="button" class="lb-btn close" aria-label="Хаах" data-close>
-			<Icon name="material-symbols:close-rounded" class="size-7" />
-		</button>
-		<button type="button" class="lb-btn prev" aria-label="Өмнөх" data-dir="-1">
-			<Icon name="material-symbols:chevron-left-rounded" class="size-9" />
-		</button>
-		<button type="button" class="lb-btn next" aria-label="Дараах" data-dir="1">
-			<Icon name="material-symbols:chevron-right-rounded" class="size-9" />
-		</button>
-		<div class="strip">
-			{
-				items.map((w, i) => (
-					<figure>
-						{w.video ? (
-							<video
-								src={w.video}
-								poster={full[i].src}
-								width={w.image.width}
-								height={w.image.height}
-								muted
-								loop
-								playsinline
-								controls
-								preload="none"
-								aria-label={w.title}
-							/>
-						) : (
-							<img src={full[i].src} alt={w.title} loading="lazy" decoding="async" class="photo" />
-						)}
-						<figcaption>{w.title}</figcaption>
-					</figure>
-				))
-			}
-		</div>
-	</dialog>
+	<Lightbox items={items} id={lightbox} />
 </section>
 
-<style>
-	.lightbox {
-		position: fixed;
-		inset: 0;
-		width: 100vw;
-		height: 100vh;
-		max-width: none;
-		max-height: none;
-		margin: 0;
-		padding: 0;
-		border: 0;
-		background: transparent;
-		color: oklch(95% 0.008 85);
-	}
-	.lightbox::backdrop {
-		background: oklch(10% 0.004 60 / 0.96);
-	}
-	.strip {
-		display: flex;
-		height: 100%;
-		overflow-x: auto;
-		overflow-y: hidden;
-		scroll-snap-type: x mandatory;
-		scrollbar-width: none;
-	}
-	.strip::-webkit-scrollbar {
-		display: none;
-	}
-	.strip figure {
-		display: flex;
-		flex: 0 0 100%;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		height: 100%;
-		padding: 4rem 1rem 2.5rem;
-		scroll-snap-align: center;
-	}
-	.strip img,
-	.strip video {
-		flex: 0 1 auto;
-		min-height: 0;
-		width: auto;
-		height: auto;
-		max-width: 100%;
-		max-height: 100%;
-		object-fit: contain;
-		border-radius: 0.5rem;
-	}
-	.strip figcaption {
-		font-size: 0.75rem;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: oklch(80% 0.085 85); /* champagne — the overlay is dark in both themes */
-	}
-	.lb-btn {
-		position: absolute;
-		z-index: 1;
-		display: grid;
-		place-items: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: 9999px;
-		background: oklch(100% 0 0 / 0.12);
-		color: white;
-		backdrop-filter: blur(6px);
-		transition: background-color 150ms var(--ease-standard);
-	}
-	.lb-btn:hover {
-		background: oklch(100% 0 0 / 0.24);
-	}
-	.lb-btn:focus-visible {
-		outline: 2px solid var(--color-focus);
-		outline-offset: 2px;
-	}
-	.close {
-		top: 1rem;
-		right: 1rem;
-	}
-	.prev,
-	.next {
-		top: 50%;
-		transform: translateY(-50%);
-	}
-	.prev {
-		left: 1rem;
-	}
-	.next {
-		right: 1rem;
-	}
-	@media (hover: none) {
-		.prev,
-		.next {
-			display: none; /* touch: swipe the strip instead */
-		}
-	}
-</style>
-
 <script>
-	document.querySelectorAll<HTMLElement>(".gallery").forEach((root) => {
-		const dialog = root.querySelector("dialog");
-		const strip = dialog?.querySelector<HTMLElement>(".strip");
-		if (!dialog || !strip) return;
-
-		const go = (i: number) => strip.scrollTo({ left: i * strip.clientWidth, behavior: "instant" });
-		const step = (dir: number) => strip.scrollBy({ left: dir * strip.clientWidth, behavior: "smooth" });
-
-		root.querySelectorAll<HTMLAnchorElement>(".item").forEach((a) =>
-			a.addEventListener("click", (e) => {
-				e.preventDefault();
-				dialog.showModal();
-				go(Number(a.dataset.index));
-			}),
-		);
-		dialog.querySelectorAll<HTMLButtonElement>("[data-dir]").forEach((b) =>
-			b.addEventListener("click", () => step(Number(b.dataset.dir))),
-		);
-		dialog.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
-		// Clicking the dark area (strip / figure padding) closes; clicking the image does not.
-		dialog.addEventListener("click", (e) => {
-			const t = e.target as HTMLElement;
-			if (t === strip || t.tagName === "FIGURE") dialog.close();
-		});
-		dialog.addEventListener("keydown", (e) => {
-			if ((e.target as HTMLElement).tagName === "VIDEO") return; // arrows seek the clip there
-			if (e.key === "ArrowRight") step(1);
-			if (e.key === "ArrowLeft") step(-1);
-		});
-
-		// Clips play only while on screen: grid tiles as they scroll into view,
-		// lightbox slides as they snap into place (which also stops them on close).
-		const watch = (videos: NodeListOf<HTMLVideoElement>, options: IntersectionObserverInit) => {
-			if (!videos.length) return;
-			const io = new IntersectionObserver((entries) => {
+	// Grid clips play only while on screen, and not at all under reduced motion or Save-Data.
+	const still =
+		matchMedia("(prefers-reduced-motion: reduce)").matches ||
+		(navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
+	const clips = document.querySelectorAll<HTMLVideoElement>(".gallery .item video");
+	if (!still && clips.length) {
+		const io = new IntersectionObserver(
+			(entries) => {
 				for (const e of entries) {
 					const v = e.target as HTMLVideoElement;
 					if (e.isIntersecting) v.play().catch(() => {});
 					else v.pause();
 				}
-			}, options);
-			videos.forEach((v) => io.observe(v));
-		};
-		const still =
-			matchMedia("(prefers-reduced-motion: reduce)").matches ||
-			(navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
-		if (!still) watch(root.querySelectorAll<HTMLVideoElement>(".item video"), { rootMargin: "25%" });
-		watch(strip.querySelectorAll("video"), { root: strip, threshold: 0.6 });
-	});
+			},
+			{ rootMargin: "25%" },
+		);
+		clips.forEach((v) => io.observe(v));
+	}
 </script>

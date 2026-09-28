@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import logo from "../assets/logo.jpg";
 import Gallery from "../components/Gallery.astro";
+import Hero from "../components/Hero.astro";
 import Timeline from "../components/Timeline.astro";
 import Layout from "../layouts/Layout.astro";
 import { categories, site, steps, timeline, works } from "../content";
@@ -14,26 +15,21 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 ---
 
 <Layout ogImage={works[0].image}>
-	<!-- Hero: same rhythm as the reference index — display title, muted tagline. -->
-	<div id="top" class="hero mt-14 mb-14 px-4 text-center sm:mt-20 sm:mb-20 md:mt-28 md:mb-24">
-		<p class="eyebrow mb-6">{site.eyebrow}</p>
-		<h1 class="font-display glow-text mb-6 text-display md:mb-8">{site.name}</h1>
-		<p class="mx-auto max-w-screen-sm text-muted md:text-lg">{site.tagline}</p>
-		<div class="mt-9 flex flex-wrap justify-center gap-3">
-			<a href={site.phoneHref} class={btnPrimary}>
-				<Icon name="material-symbols:call" class="size-5" aria-hidden="true" />
-				{site.phone}
-			</a>
-			<a href={site.instagram} target="_blank" rel="me noopener" class={btnQuiet}>
-				<Icon name="fa6-brands:instagram" class="size-5" aria-hidden="true" />
-				Instagram
-			</a>
-			<a href={site.facebook} target="_blank" rel="me noopener" class={btnQuiet}>
-				<Icon name="fa6-brands:facebook" class="size-5" aria-hidden="true" />
-				Facebook
-			</a>
-		</div>
-	</div>
+	<!-- Hero: the studio's work as a film still behind the logo mark; the calls to action slot in. -->
+	<Hero>
+		<a href={site.phoneHref} class={btnPrimary}>
+			<Icon name="material-symbols:call" class="size-5" aria-hidden="true" />
+			{site.phone}
+		</a>
+		<a href={site.instagram} target="_blank" rel="me noopener" class={btnQuiet}>
+			<Icon name="fa6-brands:instagram" class="size-5" aria-hidden="true" />
+			Instagram
+		</a>
+		<a href={site.facebook} target="_blank" rel="me noopener" class={btnQuiet}>
+			<Icon name="fa6-brands:facebook" class="size-5" aria-hidden="true" />
+			Facebook
+		</a>
+	</Hero>
 
 	<Gallery items={works} />
 
@@ -69,7 +65,7 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 	</section>
 
 	<div class="mt-24 md:mt-32">
-		<Timeline items={timeline} categories={categories} title="Хийсэн ажлууд" subtitle={site.timelineIntro} />
+		<Timeline items={timeline} categories={categories} works={works} title="Хийсэн ажлууд" subtitle={site.timelineIntro} />
 	</div>
 
 	<!-- Contact: the reference About panel (rounded paper-2 card, text + round portrait). -->
