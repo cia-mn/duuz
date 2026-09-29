@@ -8,5 +8,8 @@ export default defineConfig({
 	// previews need free of redirects, so keep it in step with that setting.
 	site: "https://www.duuz.mn",
 	integrations: [icon()],
+	// One page: its CSS (~30 KB gzipped) rides in the HTML, so the first paint
+	// waits on no further request.
+	build: { inlineStylesheets: "always" },
 	vite: { plugins: [tailwindcss()] },
 });

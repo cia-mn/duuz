@@ -1,0 +1,21 @@
+---
+/**
+ * Pages serves this for any address it doesn't know, with a 404 status. Kept
+ * out of search results; the header, footer and this button all lead home.
+ */
+import Layout from "../layouts/Layout.astro";
+import { site } from "../content";
+---
+
+<Layout title={`Хуудас олдсонгүй — ${site.name}`} noindex>
+	<section class="mx-auto flex max-w-screen-sm flex-col items-center px-4 py-32 text-center md:py-40">
+		<p class="eyebrow mb-5">404</p>
+		<h1 class="font-display mb-10 text-5xl md:text-6xl">Хуудас олдсонгүй</h1>
+		<a
+			href="/"
+			class="glow inline-flex items-center justify-center rounded-full bg-accent px-7 py-3.5 text-xs font-medium tracking-[0.16em] text-on-accent uppercase transition duration-200 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none md:text-[0.8rem]"
+		>
+			Нүүр хуудас
+		</a>
+	</section>
+</Layout>

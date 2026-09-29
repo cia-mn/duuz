@@ -103,7 +103,7 @@ const FACEBOOK = "https://www.facebook.com/duuzdesigntavilga";
 export const site = {
 	name: "DuuZ design",
 	owner: "Du Ulzii",
-	title: "DuuZ design — гал тогоо, шүүгээ, ТВ хана",
+	title: "DuuZ design — захиалгат гал тогоо, шүүгээ, ТВ хана · Улаанбаатар",
 	/** Small-caps line above the hero title. */
 	eyebrow: "Улаанбаатар · Захиалгат тавилга",
 	description:
@@ -120,11 +120,12 @@ export const site = {
 	city: "Улаанбаатар",
 	instagram: INSTAGRAM,
 	facebook: FACEBOOK,
+	// From the root, so the links also lead home from the 404 page.
 	nav: [
-		{ label: "Ажлууд", href: "#works" },
-		{ label: "Үйлчилгээ", href: "#services" },
-		{ label: "Хийсэн ажлууд", href: "#timeline" },
-		{ label: "Холбоо барих", href: "#contact" },
+		{ label: "Ажлууд", href: "/#works" },
+		{ label: "Үйлчилгээ", href: "/#services" },
+		{ label: "Хийсэн ажлууд", href: "/#timeline" },
+		{ label: "Холбоо барих", href: "/#contact" },
 	],
 };
 

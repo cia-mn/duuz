@@ -10,6 +10,8 @@
     "model": "node scripts/model.mjs"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/geist": "^5.3.0",
     "@iconify-json/fa6-brands": "^1.2.6",
     "@iconify-json/material-symbols": "^1.2.92",
     "@tailwindcss/vite": "^4.3.3",

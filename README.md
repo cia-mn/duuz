@@ -10,6 +10,10 @@ npm run dev      # http://localhost:4321
 npm run build    # static output in dist/
 ```
 
+CI builds with Node 22's npm 10 (`npm ci`). npm 11 (Node 24 and up) drops some of sharp's
+optional entries from `package-lock.json` when adding a package, and `npm ci` then fails the
+deploy — after `npm install <package>`, rewrite the lock with `npx npm@10 install --package-lock-only`.
+
 ## Editing the site
 
 Everything you would want to change lives in **`src/content.ts`** — the studio name, phone
@@ -67,6 +71,10 @@ and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 | `src/components/Timeline.astro` | Filterable timeline with rail, markers and reveal-on-scroll |
 | `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each timeline card |
 | `src/components/social.ts` | Link-preview card (`/og.jpg`) and home-screen icon, drawn at build time |
+| `src/components/StructuredData.astro` | schema.org data for search engines: the business and the site |
+| `src/pages/sitemap.xml.ts`, `robots.txt.ts` | Sitemap (with the portfolio photos) and robots file |
+| `src/pages/404.astro` | Not-found page; kept out of search |
+| `src/styles/fonts.css` | Self-hosted fonts (Fontsource): Latin and Cyrillic subsets only |
 | `src/components/ModelStage.astro` | Services steps beside the 3D stage: tour, lazy loading, fallbacks |
 | `src/scripts/model-stage.ts` | The 3D stage (three.js): glowing edges, build-up, bloom, camera |
 | `scripts/model.mjs` | SketchUp `.dae` → compressed `.glb` for the stage (`npm run model`) |
@@ -92,6 +100,12 @@ page (`src/components/preview.ts`, ~200 bytes each), so a card starts dark, fill
 blurred miniature at once, and the photo fades in over it when its file arrives; the blur
 seems to clear. The hero's banner does the same, its push-in waiting for the real file.
 Only opacity animates, and without script nothing is hidden.
+
+Fonts are self-hosted (`src/styles/fonts.css`) in the three subsets the site writes in —
+Latin, Cyrillic, and the extended block with Mongolian's Ө and Ү — and the page's CSS is
+inlined, so the first paint waits on nothing but the HTML. The hero's fade-up starts at 1%
+opacity rather than 0: the banner is the largest paint, and Chrome only times it (LCP,
+which search ranks on) once it has visibly painted.
 
 The hero is the studio's banner graded like a film still — dark pool behind the logo,
 vignette, grain, a fade into the page — that fades up from black and then pushes in
@@ -145,6 +159,15 @@ at build time from the hero banner and the logo mark (`src/components/social.ts`
 also draws `/apple-touch-icon.png`), so it follows when either changes. Facebook keeps a
 preview for weeks: after a deploy, paste the link into the
 [Sharing Debugger](https://developers.facebook.com/tools/debug/) and press *Scrape Again*.
+
+**Search.** Crawlers get a title and description naming the services and the city, the
+canonical `www` address, schema.org business data (`src/components/StructuredData.astro`:
+name, phone, city, services, Instagram and Facebook — add an address or opening hours there
+once the studio publishes them), `/sitemap.xml` with the portfolio photos for Google
+Images, and `/robots.txt`. Once, register the site in
+[Google Search Console](https://search.google.com/search-console) (and Bing Webmaster Tools)
+and submit `https://www.duuz.mn/sitemap.xml`; a Google Business Profile puts the studio on
+Maps and in local results.
 
 DNS lives at dns.mn (`ns1–4.dns.mn`):
 

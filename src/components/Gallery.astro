@@ -23,7 +23,11 @@ const full = await Promise.all(items.map((w) => fullSize(w.image)));
 const previews = await Promise.all(items.map((w) => preview(w.image)));
 // The native width must be in the srcset: once `w` descriptors exist browsers
 // ignore `src`, so a 640px photo would otherwise always render from the 360px file.
-const widths = (w: number) => [...[360, 720, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
+// Steps close enough that a phone never has to take twice the pixels it shows.
+const widths = (w: number) => [...[320, 480, 640, 800, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
+// A column's real width at each breakpoint (container padding and gaps taken off).
+const sizes =
+	"(max-width: 639px) calc(50vw - 24px), (max-width: 767px) calc(33.3vw - 21px), (max-width: 1023px) calc(33.3vw - 37px), (max-width: 1279px) calc(25vw - 34px), 280px";
 const zoom = "transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]";
 const lightbox = `${id}-lightbox`;
 ---
@@ -42,7 +46,7 @@ const lightbox = `${id}-lightbox`;
 						<Image
 							src={w.image}
 							widths={widths(w.image.width)}
-							sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+							sizes={sizes}
 							quality={85}
 							alt={w.title}
 							loading={i < 4 ? "eager" : "lazy"}
@@ -65,7 +69,11 @@ const lightbox = `${id}-lightbox`;
 								<Icon name="material-symbols:play-arrow-rounded" class="size-5" aria-hidden="true" />
 							</span>
 						)}
-						<span class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 via-black/30 to-transparent px-4 pt-12 pb-4">
+						{/* The photo's alt already names it; screen readers needn't hear it twice. */}
+						<span
+							aria-hidden="true"
+							class="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 via-black/30 to-transparent px-4 pt-12 pb-4"
+						>
 							<span class="block text-[0.7rem] tracking-[0.12em] text-white/90 uppercase md:text-xs">
 								{w.title}
 							</span>

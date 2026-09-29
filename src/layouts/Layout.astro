@@ -1,15 +1,19 @@
 ---
 import { Icon } from "astro-icon/components";
+import StructuredData from "../components/StructuredData.astro";
 import { CARD } from "../components/social";
 import { site } from "../content";
+import "../styles/fonts.css";
 import "../styles/global.css";
 
 interface Props {
 	title?: string;
 	description?: string;
+	/** Keep this page out of search results (the 404). */
+	noindex?: boolean;
 }
 
-const { title = site.title, description = site.description } = Astro.props;
+const { title = site.title, description = site.description, noindex = false } = Astro.props;
 // Crawlers want absolute URLs on the host that answers without a redirect (`site`).
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const card = Astro.site ? new URL("/og.jpg", Astro.site).href : "/og.jpg";
@@ -20,11 +24,12 @@ const year = new Date().getFullYear();
 <html lang="mn">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<meta name="author" content={site.owner} />
-		{canonical && <link rel="canonical" href={canonical} />}
+		{noindex && <meta name="robots" content="noindex" />}
+		{canonical && !noindex && <link rel="canonical" href={canonical} />}
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<!-- Link previews. The card is drawn at build time from the hero (src/components/social.ts). -->
@@ -41,12 +46,7 @@ const year = new Date().getFullYear();
 		<meta property="og:image:alt" content={`${site.name} — ${site.eyebrow}`} />
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:image" content={card} />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Geist:wght@400;500;600&display=swap"
-			rel="stylesheet"
-		/>
+		{!noindex && <StructuredData />}
 		<script is:inline>
 			// Theme init before first paint. Dark is the brand default — the OS
 			// preference does not get a vote, only an explicit toggle does.
@@ -69,7 +69,7 @@ const year = new Date().getFullYear();
 	<body class="flex min-h-screen flex-col">
 		<header class="sticky top-0 z-40 border-b border-rule/60 bg-paper/75 backdrop-blur-md">
 			<div class="mx-auto flex w-full max-w-screen-xl items-center justify-between gap-4 px-4 py-4 md:px-8">
-				<a href="#top" class="font-display text-2xl tracking-[0.06em]">{site.name}</a>
+				<a href="/#top" class="font-display text-2xl tracking-[0.06em]">{site.name}</a>
 				<div class="flex items-center gap-4 sm:gap-6">
 					<nav class="flex flex-wrap gap-x-5 gap-y-1 text-[0.7rem] tracking-[0.18em] text-muted uppercase max-sm:hidden">
 						{site.nav.map((item) => <a href={item.href} class="transition-colors hover:text-accent">{item.label}</a>)}

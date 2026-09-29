@@ -247,7 +247,10 @@ const blurred = await preview(banner);
 	}
 	@keyframes cine-in {
 		from {
-			opacity: 0;
+			/* Not quite 0: the banner is the page's largest paint, and Chrome
+			   only times it (LCP, which search ranks by) once it has painted
+			   visibly, not when a fade from nothing ends. 1% looks the same. */
+			opacity: 0.01;
 			transform: scale(1.12);
 		}
 		to {
