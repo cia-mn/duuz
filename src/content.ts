@@ -103,7 +103,7 @@ const FACEBOOK = "https://www.facebook.com/duuzdesigntavilga";
 export const site = {
 	name: "DuuZ design",
 	owner: "Du Ulzii",
-	title: "DuuZ design — захиалгат гал тогоо, шүүгээ, ТВ хана · Улаанбаатар",
+	title: "Захиалгат тавилга, гал тогоо · Улаанбаатар — DuuZ design",
 	/** Small-caps line above the hero title. */
 	eyebrow: "Улаанбаатар · Захиалгат тавилга",
 	description:
@@ -115,6 +115,12 @@ export const site = {
 	timelineIntro: "Сүүлд эзэндээ хүлээлгэн өгсөн ажлууд, он сар дарааллаар.",
 	about:
 		"Гал тогоо, хувцасны шүүгээ, ТВ хана, үүдний тавилгыг орон зайд тань тааруулан зохиомжилж, Европын чанартай материалаар үйлдвэрлэж, суурилуулж өгдөг. Хэмжилт, зураг төсөл үнэ төлбөргүй.",
+	/**
+	 * The offer once in English and once in Latin letters, in the footer, for
+	 * searches typed that way (furniture, kitchen; tawilga, gal togoo).
+	 */
+	english: "Custom furniture and kitchens, made to measure in Ulaanbaatar, Mongolia.",
+	latin: "Zahialgat tawilga, gal togoo · Ulaanbaatar",
 	phone: "9411-3392",
 	phoneHref: "tel:+97694113392",
 	city: "Улаанбаатар",

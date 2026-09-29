@@ -162,7 +162,11 @@ also draws `/apple-touch-icon.png`), so it follows when either changes. Facebook
 preview for weeks: after a deploy, paste the link into the
 [Sharing Debugger](https://developers.facebook.com/tools/debug/) and press *Scrape Again*.
 
-**Search.** Crawlers get a title and description naming the services and the city, the
+**Search.** The words the studio competes on are *тавилга, гал тогоо*, typed also in Latin
+letters (*tawilga, gal togoo*) and in English (*furniture, kitchen*). The title leads with
+the Mongolian ones, and the footer says the offer once in English and once in Latin letters
+(`site.english`, `site.latin`). Keep it to one line each: Bing demotes keyword stuffing.
+Crawlers get a title and description naming the services and the city, the
 canonical `www` address, schema.org business data (`src/components/StructuredData.astro`:
 name, phone, city, services, Instagram and Facebook — add an address or opening hours there
 once the studio publishes them), `/sitemap.xml` with the portfolio photos for Google
