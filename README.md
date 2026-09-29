@@ -164,21 +164,34 @@ preview for weeks: after a deploy, paste the link into the
 canonical `www` address, schema.org business data (`src/components/StructuredData.astro`:
 name, phone, city, services, Instagram and Facebook — add an address or opening hours there
 once the studio publishes them), `/sitemap.xml` with the portfolio photos for Google
-Images, and `/robots.txt`. Once, register the site in
-[Google Search Console](https://search.google.com/search-console) (and Bing Webmaster Tools)
-and submit `https://www.duuz.mn/sitemap.xml`; a Google Business Profile puts the studio on
-Maps and in local results.
+Images, and `/robots.txt`, whose Content Signals (`search`, `ai-input` and `ai-train`, all
+`yes`) let AI assistants index the site, answer with it and learn from it. Once, register
+the site in [Google Search Console](https://search.google.com/search-console) and Bing
+Webmaster Tools (Bing also feeds ChatGPT's and Copilot's search) and submit
+`https://www.duuz.mn/sitemap.xml`; a Google Business Profile puts the studio on Maps and in
+local results.
 
-DNS lives at dns.mn (`ns1–4.dns.mn`):
+DNS lives at Cloudflare (`guss.ns.cloudflare.com`, `sara.ns.cloudflare.com`):
 
 | Name  | Type  | Value |
 | ---   | ---   | --- |
 | `@`   | A     | `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153` |
 | `@`   | AAAA  | `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153` |
-| `www` | CNAME | `cia-mn.github.io.` |
+| `www` | CNAME | `cia-mn.github.io.`, proxied |
 
 Plus the `_github-pages-challenge-cia-mn` TXT record from the org's verified-domains page —
 it stops anyone else's Pages site from claiming `duuz.mn` if this one is ever turned off.
+
+**Link header.** Agents look for a `Link` header on the homepage
+([isitagentready.com](https://isitagentready.com) checks for one). Pages can't send one, so
+`www` is proxied and Cloudflare adds it: a response header Transform Rule matches
+`http.host eq "www.duuz.mn" and http.request.uri.path eq "/"` and sets `Link` to
+`</sitemap.xml>; rel="describedby"; type="application/xml"`. The site has no API to
+catalog, so the header points at the sitemap. SSL/TLS mode is *Full*: *Flexible* loops on
+Pages' own HTTPS redirect, and *Full (strict)* breaks if Pages can't renew its certificate
+behind the proxy. Keep Cloudflare's *Block AI bots* and *Managed robots.txt* off: the first
+turns AI crawlers away, the second puts its own `ai-train=no` and AI-crawler blocks in
+front of `/robots.txt`.
 
 ## Before going live
 
