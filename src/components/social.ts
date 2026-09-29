@@ -61,42 +61,61 @@ async function gold(size: number, pad: number) {
 	return { logo, halo, wide };
 }
 
-/** The link-preview card: the hero's banner, graded as the hero grades it, the mark on a dark pool. */
+/**
+ * The link-preview card: the hero's banner kept bright, so the work reads even
+ * as a small feed thumbnail, and the mark on a disc of dark glass that keeps it
+ * crisp over marble and cabinets alike.
+ */
 export async function socialCard() {
 	const { width: w, height: h } = CARD;
 	const size = 330;
 	const { logo, halo, wide } = await gold(size, 80);
-	// Warm density, top and bottom fades, vignette, then the pool that lifts the mark off the photos.
+	// Only a breath of shade at the edges; the photos stay as shot.
 	const grade = svg(
 		w,
 		h,
 		`<defs>
 			<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-				<stop offset="0" stop-color="${oklch(0.08, 0.006, 60, 0.7)}"/>
-				<stop offset="0.28" stop-color="${oklch(0.08, 0.006, 60, 0)}"/>
-				<stop offset="0.7" stop-color="${oklch(0.08, 0.006, 60, 0)}"/>
-				<stop offset="1" stop-color="${oklch(0.08, 0.006, 60, 0.75)}"/>
+				<stop offset="0" stop-color="${oklch(0.08, 0.006, 60, 0.12)}"/>
+				<stop offset="0.25" stop-color="${oklch(0.08, 0.006, 60, 0)}"/>
+				<stop offset="0.75" stop-color="${oklch(0.08, 0.006, 60, 0)}"/>
+				<stop offset="1" stop-color="${oklch(0.08, 0.006, 60, 0.16)}"/>
 			</linearGradient>
 			<radialGradient id="vignette" cx="50%" cy="46%" r="75%">
-				<stop offset="0.5" stop-color="${oklch(0.06, 0.006, 60, 0)}"/>
-				<stop offset="1" stop-color="${oklch(0.06, 0.006, 60, 0.93)}"/>
-			</radialGradient>
-			<radialGradient id="pool" gradientTransform="translate(0.5 0.5) scale(0.52 0.72) translate(-0.5 -0.5)">
-				<stop offset="0" stop-color="${oklch(0.07, 0.008, 60, 0.86)}"/>
-				<stop offset="0.8" stop-color="${oklch(0.07, 0.008, 60, 0)}"/>
+				<stop offset="0.55" stop-color="${oklch(0.06, 0.006, 60, 0)}"/>
+				<stop offset="1" stop-color="${oklch(0.06, 0.006, 60, 0.22)}"/>
 			</radialGradient>
 		</defs>
-		<rect width="100%" height="100%" fill="${oklch(0.14, 0.02, 65, 0.45)}"/>
 		<rect width="100%" height="100%" fill="url(#fade)"/>
-		<rect width="100%" height="100%" fill="url(#vignette)"/>
-		<rect width="100%" height="100%" fill="url(#pool)"/>`,
+		<rect width="100%" height="100%" fill="url(#vignette)"/>`,
 	);
+	// The disc fills the mark's ring, with a soft shadow lifting it off the photos.
+	const r = size * 0.485;
+	const disc = svg(
+		wide,
+		wide,
+		`<defs>
+			<radialGradient id="glass">
+				<stop offset="0" stop-color="${oklch(0.1, 0.01, 60, 0.72)}"/>
+				<stop offset="0.97" stop-color="${oklch(0.12, 0.012, 60, 0.6)}"/>
+				<stop offset="1" stop-color="${oklch(0.12, 0.012, 60, 0)}"/>
+			</radialGradient>
+			<radialGradient id="shadow">
+				<stop offset="0.6" stop-color="${oklch(0.06, 0.006, 60, 0.45)}"/>
+				<stop offset="1" stop-color="${oklch(0.06, 0.006, 60, 0)}"/>
+			</radialGradient>
+		</defs>
+		<circle cx="${wide / 2}" cy="${wide / 2}" r="${r + 60}" fill="url(#shadow)"/>
+		<circle cx="${wide / 2}" cy="${wide / 2}" r="${r}" fill="url(#glass)"/>`,
+	);
+	const centred = (side: number) => ({ left: Math.round((w - side) / 2), top: Math.round((h - side) / 2) });
 	const card = await sharp(file(banner))
 		.resize(w, h, { fit: "cover" })
 		.composite([
 			{ input: grade },
-			{ input: halo, left: Math.round((w - wide) / 2), top: Math.round((h - wide) / 2) },
-			{ input: logo, left: Math.round((w - size) / 2), top: Math.round((h - size) / 2) },
+			{ input: disc, ...centred(wide) },
+			{ input: halo, ...centred(wide) },
+			{ input: logo, ...centred(size) },
 		])
 		.jpeg({ quality: 88, mozjpeg: true })
 		.toBuffer();
