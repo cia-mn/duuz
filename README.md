@@ -66,6 +66,7 @@ and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 | `src/components/Gallery.astro` | Masonry grid with clip tiles |
 | `src/components/Timeline.astro` | Filterable timeline with rail, markers and reveal-on-scroll |
 | `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each timeline card |
+| `src/components/social.ts` | Link-preview card (`/og.jpg`) and home-screen icon, drawn at build time |
 | `src/components/ModelStage.astro` | Services steps beside the 3D stage: tour, lazy loading, fallbacks |
 | `src/scripts/model-stage.ts` | The 3D stage (three.js): glowing edges, build-up, bloom, camera |
 | `scripts/model.mjs` | SketchUp `.dae` → compressed `.glb` for the stage (`npm run model`) |
@@ -127,13 +128,23 @@ be switched to *Source: GitHub Actions* once:
 gh api -X POST repos/cia-mn/duuz/pages -f build_type=workflow
 ```
 
-Live at **https://duuz.mn** (`cia-mn.github.io/duuz/` and `www.duuz.mn` redirect to it).
+Live at **https://www.duuz.mn** (`duuz.mn` and `cia-mn.github.io/duuz/` redirect to it).
 The custom domain is a repo setting, not a file — Pages ignores `CNAME` files when it
 deploys from a workflow:
 
 ```bash
-gh api -X PUT repos/cia-mn/duuz/pages -f cname=duuz.mn
+gh api -X PUT repos/cia-mn/duuz/pages -f cname=www.duuz.mn
 ```
+
+`site` in `astro.config.mjs` must name the same host: it builds the canonical, `og:url`
+and `og:image` URLs, and link previews go wrong when those redirect. Change one, change
+both.
+
+**Link previews.** Facebook, Messenger and Telegram show `/og.jpg`, a 1200×630 card drawn
+at build time from the hero banner and the logo mark (`src/components/social.ts`, which
+also draws `/apple-touch-icon.png`), so it follows when either changes. Facebook keeps a
+preview for weeks: after a deploy, paste the link into the
+[Sharing Debugger](https://developers.facebook.com/tools/debug/) and press *Scrape Again*.
 
 DNS lives at dns.mn (`ns1–4.dns.mn`):
 
