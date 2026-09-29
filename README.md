@@ -142,12 +142,14 @@ be switched to *Source: GitHub Actions* once:
 gh api -X POST repos/cia-mn/duuz/pages -f build_type=workflow
 ```
 
-Live at **https://www.duuz.mn** (`duuz.mn` and `cia-mn.github.io/duuz/` redirect to it).
-The custom domain is a repo setting, not a file — Pages ignores `CNAME` files when it
-deploys from a workflow:
+Live at **https://www.duuz.mn** (`duuz.mn`, `http://` and `cia-mn.github.io/duuz/` 301 to
+it). The custom domain and HTTPS enforcement are repo settings, not files — Pages ignores
+`CNAME` files when it deploys from a workflow — and without enforcement the page also
+answers on `http://`, a duplicate URL:
 
 ```bash
 gh api -X PUT repos/cia-mn/duuz/pages -f cname=www.duuz.mn
+gh api -X PUT repos/cia-mn/duuz/pages -F https_enforced=true
 ```
 
 `site` in `astro.config.mjs` must name the same host: it builds the canonical, `og:url`
@@ -165,11 +167,19 @@ canonical `www` address, schema.org business data (`src/components/StructuredDat
 name, phone, city, services, Instagram and Facebook — add an address or opening hours there
 once the studio publishes them), `/sitemap.xml` with the portfolio photos for Google
 Images, and `/robots.txt`, whose Content Signals (`search`, `ai-input` and `ai-train`, all
-`yes`) let AI assistants index the site, answer with it and learn from it. Once, register
-the site in [Google Search Console](https://search.google.com/search-console) and Bing
-Webmaster Tools (Bing also feeds ChatGPT's and Copilot's search) and submit
+`yes`) let AI assistants index the site, answer with it and learn from it. The sitemap's
+`lastmod` is the last commit that touched `src/` or `public/`, not the build date, and a
+deploy that changes the page tells Bing at once through [IndexNow](https://www.indexnow.org/):
+the key is `public/8c81d7a0e0047f6265016637d45a8bc9.txt`, the ping the last step of
+`deploy.yml`. Once, register the site in
+[Google Search Console](https://search.google.com/search-console) and
+[Bing Webmaster Tools](https://www.bing.com/webmasters) (it can import the site from Search
+Console; Bing also feeds ChatGPT's and Copilot's search) and submit
 `https://www.duuz.mn/sitemap.xml`; a Google Business Profile puts the studio on Maps and in
-local results.
+local results. The page follows
+[Bing's guidelines](https://www.bing.com/webmasters/help/webmaster-guidelines-30fba23a):
+one canonical URL, a single `h1`, alt text on every photo, business data that matches what
+the page says, and nothing that stops snippets or citations (`nosnippet`, `noarchive`).
 
 DNS lives at Cloudflare (`guss.ns.cloudflare.com`, `sara.ns.cloudflare.com`):
 

@@ -18,14 +18,22 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.page.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the sitemap's lastmod is the last commit that touched the page
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Only a page that differs from the live one is news for IndexNow.
+      - id: page
+        run: |
+          if curl -fsS https://www.duuz.mn/ | cmp -s - dist/index.html; then echo changed=false; else echo changed=true; fi >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -39,3 +47,8 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      # Tells Bing and the other IndexNow engines the page changed; the key is
+      # public/8c81d7a0e0047f6265016637d45a8bc9.txt. A failed ping never fails the deploy.
+      - if: needs.build.outputs.changed == 'true'
+        continue-on-error: true
+        run: curl -fsS "https://api.indexnow.org/indexnow?url=https://www.duuz.mn/&key=8c81d7a0e0047f6265016637d45a8bc9"
