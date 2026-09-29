@@ -1,0 +1,10 @@
+// One-time setup in the Cloudflare dashboard, then `npx wrangler deploy` from this dir:
+//   1. DNS: set the `www` CNAME to Proxied (orange cloud).
+//   2. SSL/TLS: mode "Full" (GitHub Pages enforces HTTPS; "Flexible" redirect-loops).
+{
+	"name": "duuz-markdown",
+	"main": "index.js",
+	"compatibility_date": "2026-09-01",
+	"ai": { "binding": "AI" },
+	"routes": [{ "pattern": "www.duuz.mn/*", "zone_name": "duuz.mn" }]
+}
