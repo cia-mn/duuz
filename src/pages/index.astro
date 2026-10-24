@@ -1,18 +1,18 @@
 ---
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
-import logo from "../assets/logo.jpg";
 import Gallery from "../components/Gallery.astro";
 import Hero from "../components/Hero.astro";
 import ModelStage from "../components/ModelStage.astro";
 import Timeline from "../components/Timeline.astro";
 import Layout from "../layouts/Layout.astro";
-import { categories, showcase, site, steps, timeline, works } from "../content";
+import { brands, materials, sectors, showcase, site, steps, timeline, works } from "../content";
 
 const btn =
 	"inline-flex items-center justify-center gap-2.5 rounded-full px-7 py-3.5 text-xs font-medium tracking-[0.16em] uppercase transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-paper md:text-[0.8rem]";
 const btnPrimary = `${btn} glow bg-accent text-on-accent hover:brightness-110`;
 const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:text-accent`;
+const contactAlt = works.find((w) => w.image === site.contactPhoto)?.title ?? site.name;
 ---
 
 <Layout>
@@ -32,71 +32,102 @@ const btnQuiet = `${btn} border border-rule text-ink hover:border-accent hover:t
 		</a>
 	</Hero>
 
-	<Gallery items={works} />
+	<!-- Works: eight tiles, then every job as a row that opens on its photos. -->
+	<section id="works" class="mx-auto max-w-screen-xl px-4 md:px-8">
+		<p class="eyebrow mb-4 text-center">Ажлууд</p>
+		<h2 class="font-display mb-10 text-center text-4xl md:mb-12 md:text-5xl">Сүүлд хүлээлгэн өгсөн ажлууд</h2>
+		<Gallery items={works.filter((w) => w.featured)} />
+		<div class="mx-auto mt-12 max-w-screen-lg md:mt-16">
+			<Timeline items={timeline} sectors={sectors} works={works} />
+		</div>
+	</section>
 
-	<!-- Services: what you can order, then the four steps that are ours, played out on a 3D model. -->
 	<section id="services" class="mx-auto mt-24 max-w-screen-xl px-4 md:mt-32 md:px-8">
+		<!-- Who it's for: the sectors on the studio's Facebook page, as an index. -->
 		<p class="eyebrow mb-4 text-center">Үйлчилгээ</p>
-		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Та зөвхөн захиална.</h2>
-		<p class="mx-auto mb-8 max-w-screen-sm text-center text-muted">{site.servicesIntro}</p>
-
-		<ul class="mb-10 flex flex-wrap justify-center gap-x-7 gap-y-3 text-[0.7rem] tracking-[0.16em] text-muted uppercase md:mb-12" aria-label="Юу захиалж болох вэ">
+		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Бүх төрлийн тавилга, 100% захиалгаар.</h2>
+		<p class="mx-auto mb-10 max-w-screen-sm text-center text-muted md:mb-14">{site.sectorsIntro}</p>
+		<ol class="mx-auto max-w-screen-lg">
 			{
-				categories.map((c) => (
-					<li class="inline-flex items-center gap-2">
-						<Icon name={c.icon} class="size-5 text-accent" aria-hidden="true" />
-						{c.label}
+				sectors.map((s, i) => (
+					<li class="grid gap-x-8 gap-y-3 border-t border-rule py-7 last:border-b md:grid-cols-[3rem_1fr_1.15fr] md:py-9">
+						<span class="text-[0.7rem] tracking-[0.18em] text-accent tabular-nums md:pt-3">0{i + 1}</span>
+						<h3 class="font-display text-4xl md:text-5xl">{s.label}</h3>
+						<div>
+							<p class="mb-4 text-muted">{s.text}</p>
+							<ul class="flex flex-wrap gap-x-4 gap-y-1.5 text-[0.7rem] tracking-[0.16em] uppercase">
+								{s.includes.map((x) => <li>{x}</li>)}
+							</ul>
+						</div>
 					</li>
 				))
 			}
-		</ul>
+		</ol>
 
+		<!-- How: the four steps that are ours, played out on a 3D model. -->
+		<p class="eyebrow mt-24 mb-4 text-center md:mt-32">Захиалгын явц</p>
+		<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Та зөвхөн захиална.</h2>
+		<p class="mx-auto mb-10 max-w-screen-sm text-center text-muted md:mb-12">{site.servicesIntro}</p>
 		<ModelStage steps={steps} showcase={showcase} />
+
+		<!-- What it's made of: the boards and what they give, from the studio's pinned post. -->
+		<div class="mx-auto mt-24 max-w-screen-lg md:mt-32">
+			<p class="eyebrow mb-4 text-center">Материал</p>
+			<h2 class="font-display mb-4 text-center text-4xl md:text-5xl">Удаан эдэлгээтэй материал.</h2>
+			<p class="mx-auto mb-8 max-w-screen-sm text-center text-muted">{site.materialsIntro}</p>
+			<ul class="font-display mb-10 flex flex-wrap justify-center gap-x-8 gap-y-2 text-2xl md:mb-12 md:text-3xl" aria-label="Брэнд">
+				{brands.map((b) => <li>{b}</li>)}
+			</ul>
+			<ul class="grid gap-px overflow-hidden rounded-2xl border border-rule bg-rule sm:grid-cols-2 lg:grid-cols-3">
+				{
+					materials.map((m) => (
+						<li class="flex items-center gap-4 bg-paper-2 px-6 py-5">
+							<Icon name={m.icon} class="size-6 shrink-0 text-accent" aria-hidden="true" />
+							<span>{m.text}</span>
+						</li>
+					))
+				}
+			</ul>
+		</div>
 	</section>
 
-	<div class="mt-24 md:mt-32">
-		<Timeline items={timeline} categories={categories} works={works} title="Хийсэн ажлууд" subtitle={site.timelineIntro} />
-	</div>
-
-	<!-- Contact: the reference About panel (rounded paper-2 card, text + round portrait). -->
+	<!-- Contact: one photo, the free measurement up front, one call to action. -->
 	<section id="contact" class="mx-auto mt-24 max-w-screen-lg px-4 md:mt-32 md:px-8">
-		<div class="rounded-2xl border border-rule bg-paper-2 px-5 py-10 sm:px-10 md:py-14">
-			<div class="grid items-center gap-8 sm:grid-cols-[1fr_auto]">
-				<div>
-					<p class="eyebrow mb-4">Холбоо барих</p>
-					<h2 class="font-display mb-4 text-4xl md:text-5xl">{site.owner}</h2>
-					<p class="mb-6 max-w-prose text-muted md:text-lg">{site.about}</p>
-					<ul class="mb-8 space-y-2 text-sm md:text-base">
-						<li class="flex items-center gap-2">
-							<Icon name="material-symbols:call" class="size-5 text-accent" aria-hidden="true" />
-							<a href={site.phoneHref} class="hover:text-accent">{site.phone}</a>
-						</li>
-						<li class="flex items-center gap-2">
-							<Icon name="fa6-brands:instagram" class="size-5 text-accent" aria-hidden="true" />
-							<a href={site.instagram} target="_blank" rel="me noopener" class="hover:text-accent">@duuz_design</a>
-						</li>
-						<li class="flex items-center gap-2">
-							<Icon name="fa6-brands:facebook" class="size-5 text-accent" aria-hidden="true" />
-							<a href={site.facebook} target="_blank" rel="me noopener" class="hover:text-accent">duuzdesigntavilga</a>
-						</li>
-						<li class="flex items-center gap-2">
-							<Icon name="material-symbols:location-on-outline-rounded" class="size-5 text-accent" aria-hidden="true" />
-							<span>{site.city}</span>
-						</li>
-					</ul>
-					<div class="flex flex-wrap gap-3">
-						<a href={site.phoneHref} class={btnPrimary}>Залгах</a>
-						<a href={site.instagram} target="_blank" rel="me noopener" class={btnQuiet}>Instagram-аар бичих</a>
-						<a href={site.facebook} target="_blank" rel="me noopener" class={btnQuiet}>Facebook-ээр бичих</a>
-					</div>
-				</div>
-				<Image
-					src={logo}
-					width={150}
-					height={150}
-					alt={`${site.name} лого`}
-					class="mx-auto size-36 rounded-2xl border border-rule object-contain dark:invert"
-				/>
+		<div class="grid overflow-hidden rounded-2xl border border-rule bg-paper-2 md:grid-cols-[1fr_1.1fr]">
+			<Image
+				src={site.contactPhoto}
+				widths={[480, 720, 960]}
+				sizes="(max-width: 767px) 100vw, 30rem"
+				alt={contactAlt}
+				loading="lazy"
+				class="photo aspect-[4/3] size-full object-cover md:aspect-auto"
+			/>
+			<div class="px-6 py-10 sm:px-10 md:py-14">
+				<p class="eyebrow mb-4">Холбоо барих</p>
+				<h2 class="font-display mb-4 text-4xl md:text-5xl">Хэмжилт, зураг төсөл үнэ төлбөргүй.</h2>
+				<p class="mb-8 text-muted">{site.contactIntro}</p>
+				<a href={site.phoneHref} class={`${btnPrimary} mb-8`}>
+					<Icon name="material-symbols:call" class="size-5" aria-hidden="true" />
+					Залгах · {site.phone}
+				</a>
+				<ul class="space-y-2.5 text-sm">
+					<li class="flex items-center gap-3">
+						<Icon name="material-symbols:mail-outline-rounded" class="size-5 text-accent" aria-hidden="true" />
+						<a href={`mailto:${site.email}`} class="hover:text-accent">{site.email}</a>
+					</li>
+					<li class="flex items-center gap-3">
+						<Icon name="fa6-brands:instagram" class="size-5 text-accent" aria-hidden="true" />
+						<a href={site.instagram} target="_blank" rel="me noopener" class="hover:text-accent">@duuz_design</a>
+					</li>
+					<li class="flex items-center gap-3">
+						<Icon name="fa6-brands:facebook" class="size-5 text-accent" aria-hidden="true" />
+						<a href={site.facebook} target="_blank" rel="me noopener" class="hover:text-accent">duuzdesigntavilga</a>
+					</li>
+					<li class="flex items-center gap-3 text-muted">
+						<Icon name="material-symbols:location-on-outline-rounded" class="size-5 text-accent" aria-hidden="true" />
+						{site.city} · {site.owner}
+					</li>
+				</ul>
 			</div>
 		</div>
 	</section>

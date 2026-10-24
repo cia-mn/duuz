@@ -18,7 +18,7 @@ interface Props {
 	id?: string;
 }
 
-const { items, id = "works" } = Astro.props;
+const { items, id = "gallery" } = Astro.props;
 const full = await Promise.all(items.map((w) => fullSize(w.image)));
 const previews = await Promise.all(items.map((w) => preview(w.image)));
 // The native width must be in the srcset: once `w` descriptors exist browsers
@@ -27,13 +27,13 @@ const previews = await Promise.all(items.map((w) => preview(w.image)));
 const widths = (w: number) => [...[320, 480, 640, 800, 1080, 1440].filter((x) => x < w), Math.min(w, 1600)];
 // A column's real width at each breakpoint (container padding and gaps taken off).
 const sizes =
-	"(max-width: 639px) calc(50vw - 24px), (max-width: 767px) calc(33.3vw - 21px), (max-width: 1023px) calc(33.3vw - 37px), (max-width: 1279px) calc(25vw - 34px), 280px";
+	"(max-width: 767px) calc(50vw - 24px), (max-width: 1279px) calc(25vw - 34px), 280px";
 const zoom = "transition-transform duration-700 ease-emphasized group-hover:scale-[1.04]";
 const lightbox = `${id}-lightbox`;
 ---
 
-<section id={id} class="gallery mx-auto max-w-screen-xl px-4 md:px-8">
-	<div class="columns-2 gap-4 sm:columns-3 md:gap-6 lg:columns-4 xl:gap-8">
+<div class="gallery">
+	<div class="columns-2 gap-4 md:columns-4 md:gap-6 xl:gap-8">
 		{
 			items.map((w, i) => (
 				<a
@@ -85,7 +85,7 @@ const lightbox = `${id}-lightbox`;
 	</div>
 
 	<Lightbox items={items} id={lightbox} />
-</section>
+</div>
 
 <script>
 	// Grid clips play only while on screen, and not at all under reduced motion or Save-Data.

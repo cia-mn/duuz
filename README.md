@@ -1,8 +1,8 @@
 # DuuZ design — landing page
 
 Single-page Astro site for the furniture studio [@duuz_design](https://www.instagram.com/duuz_design/)
-([Facebook](https://www.facebook.com/duuzdesigntavilga)): gallery with short clips, services,
-project timeline, contact.
+([Facebook](https://www.facebook.com/duuzdesigntavilga)): eight-tile gallery with short clips
+over a list of every job, the sectors served, the process on a 3D model, materials, contact.
 
 ```bash
 npm install
@@ -17,12 +17,15 @@ deploy — after `npm install <package>`, rewrite the lock with `npx npm@10 inst
 ## Editing the site
 
 Everything you would want to change lives in **`src/content.ts`** — the studio name, phone
-number, tagline, the four process steps, timeline entries and the gallery list. No component needs
-touching to add a project.
+number, email, tagline, the sectors, the four process steps, the materials, the jobs and the
+gallery list. No component needs touching to add a project.
 
 **Adding a photo:** drop the file in `src/assets/work/`, `import` it at the top of
 `src/content.ts`, and add a `{ image, title }` line to `works`. Astro resizes and converts
-it to WebP at build time, so upload the original resolution.
+it to WebP at build time, so upload the original resolution. The gallery shows only the
+eight entries marked `featured: true`, kept first in `works`: portraits, in pairs of about
+equal height, so the four columns (two on phones) end level. Swap one for one of the same
+shape, or re-check the layout.
 
 **Adding a clip:** a `works` entry can also carry `video` — an imported `.mp4` from
 `src/assets/work/`. It plays muted over the photo in the grid while on screen and with
@@ -34,13 +37,14 @@ licensed off-platform):
 ffmpeg -i in.mp4 -an -vf "scale=720:1280,format=yuv420p" -c:v libx264 -crf 27 -preset slow -movflags +faststart out.mp4
 ```
 
-**Adding a project to the timeline:** append an entry to `timeline` (newest first — the
-page renders the array order as-is). `category` must match a `key` in `categories`, which
-is what the filter chips are built from. Set `featured: true` for the accent ring, and list
-the job's photos in `images: []` — the same imports the gallery uses, no second copy. One
-photo renders as a plate, several as a contact sheet that fills the card width. Tapping a
-photo opens the card's own lightbox; a photo that is also a gallery tile brings that
-tile's caption along, and its clip if it has one.
+**Adding a job:** add an entry to `timeline` (newest first — the page renders the array
+order as-is). `sector` must match a `key` in `sectors` (home, office, service — the three
+the studio's Facebook page names); list the job's photos in `images: []` — the same imports
+the gallery uses, no second copy. Each job is a row that opens in place; the newest starts
+open, and opening one closes the others. One photo renders as a plate, several as a
+contact sheet. Tapping a photo opens the job's own lightbox; a photo that is also in
+`works` brings its caption along, and its clip if it has one. There is no office job with
+photos yet: the first one is a `sector: "office"` entry away.
 
 **Changing the 3D model:** the stage beside the services steps shows `showcase.model` from
 `src/content.ts` — a `.glb` built from a SketchUp export. In SketchUp use *File → Export →
@@ -65,11 +69,11 @@ and [Font Awesome brands](https://icon-sets.iconify.design/fa6-brands/).
 | Path | What it is |
 | --- | --- |
 | `src/content.ts` | All copy and data |
-| `src/pages/index.astro` | Page composition: hero, gallery, services, timeline, contact |
+| `src/pages/index.astro` | Page composition: hero, works (gallery + jobs), services (sectors, process, materials), contact |
 | `src/components/Hero.astro` | Cinematic top section: graded banner, logo mark, calls to action |
 | `src/components/Gallery.astro` | Masonry grid with clip tiles |
-| `src/components/Timeline.astro` | Filterable timeline with rail, markers and reveal-on-scroll |
-| `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each timeline card |
+| `src/components/Timeline.astro` | The jobs as an index: one `<details>` row each, opening on photos and notes |
+| `src/components/Lightbox.astro` | `<dialog>` viewer shared by the gallery and each job |
 | `src/components/social.ts` | Link-preview card (`/og.jpg`) and home-screen icon, drawn at build time |
 | `src/components/StructuredData.astro` | schema.org data for search engines: the business and the site |
 | `src/pages/sitemap.xml.ts`, `robots.txt.ts` | Sitemap (with the portfolio photos) and robots file |
@@ -127,10 +131,12 @@ load only as the section comes near, behind a button under Save-Data. Under redu
 the stage opens on the drawing, with no tour and no sway. Without WebGL the cards stand
 alone. How each effect is made is written up at the top of `src/scripts/model-stage.ts`.
 
-The timeline is a port of [Shirone](https://github.com/LyraVoid/Shirone)'s Material 3
-Expressive `TimelineSection` — rail, marker, featured ring, filter chips and staggered
-reveal — rewritten as a static Astro component on this palette, so the site ships no
-client framework.
+The jobs read as an index, after the project lists of studio sites on
+[Mobbin](https://mobbin.com) (Locomotive, Waka Waka): date, title in the display face,
+sector, and a + that turns to ×. Rows are native `<details name>`, an accordion with no
+script, and a closed job's photos don't load. The sectors follow the same index form
+(YLLW's customer segments), so the office row stands without a photo; the materials are
+the brands and claims from the studio's pinned Facebook post.
 
 ## Deploying
 
