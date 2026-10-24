@@ -2,10 +2,10 @@
 /**
  * What search engines read about the studio beyond the page text (schema.org
  * JSON-LD, in Google's rich results and knowledge panel): the business with its
- * phone, city, services and profiles, and the site itself. Only facts the page
+ * phone, email, city, services and profiles, and the site itself. Only facts the page
  * already states — no address or opening hours the studio hasn't published.
  */
-import { categories, site } from "../content";
+import { sectors, site } from "../content";
 
 const url = (path: string) => new URL(path, Astro.site ?? Astro.url).href;
 const business = url("/#business");
@@ -21,11 +21,15 @@ const data = {
 			logo: url("/apple-touch-icon.png"),
 			image: url("/og.jpg"),
 			telephone: site.phoneHref.replace("tel:", ""),
+			email: site.email,
 			address: { "@type": "PostalAddress", addressLocality: site.city, addressCountry: "MN" },
 			areaServed: { "@type": "City", name: site.city },
 			founder: { "@type": "Person", name: site.owner },
 			sameAs: [site.instagram, site.facebook],
-			makesOffer: categories.map((c) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: c.label } })),
+			makesOffer: [...new Set(sectors.flatMap((s) => s.includes))].map((name) => ({
+				"@type": "Offer",
+				itemOffered: { "@type": "Service", name },
+			})),
 		},
 		{
 			"@type": "WebSite",

@@ -53,12 +53,22 @@ export interface Work {
 	title: string;
 	/** Short clip that plays over the photo in the grid and with controls in the lightbox. */
 	video?: string;
+	/** One of the eight tiles in the gallery; the rest show only in their job. */
+	featured?: boolean;
 }
 
-export interface Category {
+/** Who the work is for, as the studio's Facebook page sorts it. */
+export interface Sector {
 	key: string;
 	label: string;
+	text: string;
+	/** What gets made for it; also the services search engines read. */
+	includes: string[];
+}
+
+export interface Material {
 	icon: string;
+	text: string;
 }
 
 export interface Step {
@@ -84,7 +94,8 @@ export interface Showcase {
 export interface TimelineItem {
 	title: string;
 	date: string;
-	category?: string;
+	/** A `key` from `sectors`. */
+	sector: string;
 	subtitle?: string;
 	location?: string;
 	description?: string;
@@ -93,8 +104,6 @@ export interface TimelineItem {
 	highlights?: string[];
 	tags?: string[];
 	links?: { label: string; url: string; icon?: string }[];
-	icon?: string;
-	featured?: boolean;
 }
 
 const INSTAGRAM = "https://www.instagram.com/duuz_design/";
@@ -112,9 +121,12 @@ export const site = {
 		"Захиалгат гал тогоо, шүүгээ, ТВ хана. Хэмжилтээс суурилуулалт хүртэл бүх зүйлийг нэг дор.",
 	servicesIntro:
 		"Хэмжилт, зураг төсөл, үйлдвэрлэл, суурилуулалт — бүгдийг нь бид хийж өгнө. Та зөвхөн хүссэнээ хэлэхэд л хангалттай.",
-	timelineIntro: "Сүүлд эзэндээ хүлээлгэн өгсөн ажлууд, он сар дарааллаар.",
-	about:
-		"Гал тогоо, хувцасны шүүгээ, ТВ хана, үүдний тавилгыг орон зайд тань тааруулан зохиомжилж, Европын чанартай материалаар үйлдвэрлэж, суурилуулж өгдөг. Хэмжилт, зураг төсөл үнэ төлбөргүй.",
+	sectorsIntro:
+		"Интерьер зураг төслөөс суурилуулалт хүртэл гэр, оффис, үйлчилгээний газрын тохижилтыг чанарын өндөр түвшинд гүйцэтгэнэ.",
+	/** The studio's own line, from its pinned Facebook post. */
+	materialsIntro: "Зөвхөн гоё биш — ухаалаг, бат бөх, удаан эдэлгээтэйг хийж өгнө.",
+	contactIntro:
+		"Байран дээр тань очиж хэмжээд, 3D зураг төслийг тантай хамт гаргана. Залгах, эсвэл Instagram, Facebook-ээр бичээрэй.",
 	/**
 	 * The offer once in English and once in Latin letters, in the footer, for
 	 * searches typed that way (furniture, kitchen; tawilga, gal togoo).
@@ -123,6 +135,9 @@ export const site = {
 	latin: "Zahialgat tawilga, gal togoo · Ulaanbaatar",
 	phone: "9411-3392",
 	phoneHref: "tel:+97694113392",
+	email: "duuzdesign8899@gmail.com",
+	/** The photo beside the contact card; its gallery caption is its alt text. */
+	contactPhoto: ministerTowerKitchen,
 	city: "Улаанбаатар",
 	instagram: INSTAGRAM,
 	facebook: FACEBOOK,
@@ -130,30 +145,32 @@ export const site = {
 	nav: [
 		{ label: "Ажлууд", href: "/#works" },
 		{ label: "Үйлчилгээ", href: "/#services" },
-		{ label: "Хийсэн ажлууд", href: "/#timeline" },
 		{ label: "Холбоо барих", href: "/#contact" },
 	],
 };
 
 /**
- * Masonry gallery. CSS columns fill top-down and balance by height, so the
- * order decides which tiles end up side by side. This one evens out the
- * columns and keeps the clips out of each other's rows at four columns and
- * staggered at three and two; re-check the layout when adding a tile.
+ * Every captioned photo: the jobs below and the sitemap use them all, the
+ * gallery only the eight `featured` ones, first here. Its CSS columns fill
+ * top-down, so these go in pairs of about equal height — portraits only — and
+ * the four columns (two on phones) end level, the clips in different rows.
+ * Re-check the layout when changing them.
  */
 export const works: Work[] = [
+	{ image: tvWallFloatingUnit, title: "Агаарт хөвөх ТВ тавиур", video: tvWallFloatingUnitClip, featured: true },
+	{ image: wardrobePremiumMatte, title: "Premium Matte шүүгээний хана", featured: true },
+	{ image: livingRoomSlatPartition, title: "Зочны өрөө — LED рейк хаалт", featured: true },
+	{ image: shopArchedVitrines, title: "Нуман оройтой шилэн витрин", video: shopArchedVitrinesClip, featured: true },
+	{ image: ministerTowerRoundedKitchen, title: "Anti-fingerprint фасадтай гал тогоо", featured: true },
+	{ image: ministerTowerWardrobeShelving, title: "Хувцасны шүүгээ, LED задгай тавиур", featured: true },
+	{ image: ministerTowerNiche, title: "Native Steel хавтан, LED гэрэлтэй тавиур", featured: true },
+	{ image: kitchenDarkStone, title: "Бараан чулуун хээтэй гал тогоо", featured: true },
 	{ image: kitchenMandalaGarden, title: "Mandala Garden — гал тогоо" },
 	{ image: kitchenMarbleBacksplash, title: "Гантиг ар хана, матт фасад" },
-	{ image: livingRoomSlatPartition, title: "Зочны өрөө — LED рейк хаалт" },
-	{ image: tvWallFloatingUnit, title: "Агаарт хөвөх ТВ тавиур", video: tvWallFloatingUnitClip },
 	{ image: livingRoomGlassVitrine, title: "Хар хүрээтэй шилэн витрин" },
-	{ image: kitchenDarkStone, title: "Бараан чулуун хээтэй гал тогоо" },
 	{ image: shopDisplayCounter, title: "Шилэн тавцантай лангуу", video: shopDisplayCounterClip },
-	{ image: wardrobePremiumMatte, title: "Premium Matte шүүгээний хана" },
 	{ image: kitchenDarkStoneRoundedEnd, title: "Дугуйруулсан төгсгөл, чулуун тавцан" },
-	{ image: ministerTowerRoundedKitchen, title: "Anti-fingerprint фасадтай гал тогоо" },
 	{ image: entryMirrorBench, title: "Үүдний толь, сандал" },
-	{ image: ministerTowerWardrobeShelving, title: "Хувцасны шүүгээ, LED задгай тавиур" },
 	{ image: livingRoomWindowDesk, title: "Ажлын ширээ, цонхны тавцан" },
 	{ image: ministerTowerKitchen, title: "Minister Tower — гал тогоо, зочны өрөө" },
 	{ image: hallwayTallCabinets, title: "Хөргөгчтэй өндөр шүүгээ" },
@@ -163,7 +180,6 @@ export const works: Work[] = [
 	{ image: livingTvShelving, title: "Зочны өрөөний ТВ хана" },
 	{ image: kitchenIslandOpenShelving, title: "Арал бүхий гал тогоо", video: kitchenIslandOpenShelvingClip },
 	{ image: vanityStoneBasin, title: "Угаалтуурын чулуун тавцан" },
-	{ image: shopArchedVitrines, title: "Нуман оройтой шилэн витрин", video: shopArchedVitrinesClip },
 	{ image: kitchenApplianceWall, title: "Суурилуулсан техник, модон фасад" },
 	{ image: livingRoomWardrobeConsole, title: "Шүүгээ, хөвөх консол ширээ" },
 	{ image: wardrobeRoundHandles, title: "Дугуй бариултай шүүгээ", video: wardrobeRoundHandlesClip },
@@ -207,12 +223,45 @@ export const showcase: Showcase = {
 	show: "3D загвар дээр харах",
 };
 
-export const categories: Category[] = [
-	{ key: "kitchen", label: "Гал тогоо", icon: "material-symbols:countertops-rounded" },
-	{ key: "wardrobe", label: "Шүүгээ", icon: "material-symbols:checkroom-rounded" },
-	{ key: "tv-wall", label: "ТВ хана", icon: "material-symbols:tv-gen-rounded" },
-	{ key: "interior", label: "Дотоод засал", icon: "material-symbols:wall-lamp-rounded" },
-	{ key: "commercial", label: "Худалдаа, үйлчилгээ", icon: "material-symbols:storefront-rounded" },
+/**
+ * The three kinds of client on the studio's Facebook page (Oct 2026: "Оффисын,
+ * үйлчилгээний газрын болон гэрийн тохижилт"), homes first as most jobs are.
+ * There is no office job with photos yet, so office has none in `timeline`.
+ */
+export const sectors: Sector[] = [
+	{
+		key: "home",
+		label: "Гэр, орон сууц",
+		text: "Байрныхаа хэмжээ, хэрэгцээнд тааруулж өрөө бүрийн тавилгыг нэг өнгө, нэг хэв маягаар хийлгэнэ.",
+		includes: ["Гал тогоо", "Хувцасны шүүгээ", "ТВ хана", "Зочны өрөө", "Хүүхдийн өрөө", "Үүдний тавилга"],
+	},
+	{
+		key: "office",
+		label: "Оффис",
+		text: "Ажлын орчныг тань багтаамжтай, цэгцтэй, байгууллагын тань өнгө төрхөд нийцүүлж тохижуулна.",
+		includes: ["Ажлын ширээ", "Бичиг баримтын шүүгээ", "Хурлын өрөө", "Хүлээн авах хэсэг"],
+	},
+	{
+		key: "service",
+		label: "Үйлчилгээний газар",
+		text: "Дэлгүүр, үйлчилгээний газрын лангуу, витрин, тавиурыг бараа, брэндэд тань тааруулж хийнэ.",
+		includes: ["Лангуу", "Шилэн витрин", "LED тавиур", "Угаалтуурын тавцан"],
+	},
+];
+
+/**
+ * Boards and fittings, and what the studio says they give: from its pinned
+ * Facebook post (Oct 2026), Blum from the job captions.
+ */
+export const brands = ["Egger", "Kronospan", "Hansol", "Euromat", "PET гадаргуу", "Blum"];
+
+export const materials: Material[] = [
+	{ icon: "material-symbols:water-drop-outline-rounded", text: "Ус, чийгэнд тэсвэртэй" },
+	{ icon: "material-symbols:health-and-safety-outline-rounded", text: "Нян, бактери үрждэггүй" },
+	{ icon: "material-symbols:cleaning-services-outline-rounded", text: "Толбо тогтдоггүй" },
+	{ icon: "material-symbols:shield-outline-rounded", text: "Нягт, бат бөх — хагарч цуурахгүй" },
+	{ icon: "material-symbols:eco-outline-rounded", text: "Формальдегид ялгаруулдаггүй, хоргүй" },
+	{ icon: "material-symbols:door-front-outline-rounded", text: "Blum механизм — чимээгүй хаалт" },
 ];
 
 /** Newest first — the page renders this order as-is. */
@@ -220,7 +269,7 @@ export const timeline: TimelineItem[] = [
 	{
 		title: "Mandala Garden — захиалгат гал тогоо",
 		date: "2026.09",
-		category: "kitchen",
+		sector: "home",
 		subtitle: "Орон сууцны гал тогоо",
 		location: "Яармаг, Улаанбаатар",
 		description:
@@ -233,24 +282,22 @@ export const timeline: TimelineItem[] = [
 		],
 		tags: ["Euromat", "Kronospan Mongolia", "Higold Mongolia", "Blum", "SCAP", "Fundermax"],
 		links: [{ label: "Instagram дээр үзэх", url: "https://www.instagram.com/p/DdZIx_tCYVd/", icon: "fa6-brands:instagram" }],
-		featured: true,
 	},
 	{
 		title: "Угаалтуурын чулуун тавцан",
 		date: "2026.08",
-		category: "interior",
+		sector: "service",
 		subtitle: "Нийтийн ариун цэврийн өрөө",
 		description:
 			"Хоёр угаалтуур багтаасан чулуун тавцан, ургамлын суулгац, модон хананы бүрхүүл, дээврийн гэрэлтэй орон зай.",
 		images: [vanityStoneBasin],
 		highlights: ["Чулуун тавцан, суулгасан угаалтуур", "Модон хананы бүрхүүл, нуусан гэрэл"],
 		tags: ["Чулуун тавцан", "Модон бүрхүүл"],
-		icon: "material-symbols:faucet-rounded",
 	},
 	{
 		title: "Premium Matte — шүүгээ ба ТВ хана",
 		date: "2026.07",
-		category: "wardrobe",
+		sector: "home",
 		subtitle: "Орон сууцны иж бүрэн тавилга",
 		description:
 			"Premium Matte цувралын beige өнгүүд орон зайд чимээгүй тансаглалыг бий болгоно. Сайжруулсан матт гадаргуу гэрлийн тусгалыг шингээж, зөөлөн мэдрэмж өгдөг.",
@@ -266,12 +313,11 @@ export const timeline: TimelineItem[] = [
 			{ label: "Instagram дээр үзэх", url: "https://www.instagram.com/p/DafxFbgiZfp/", icon: "fa6-brands:instagram" },
 			{ label: "ТВ хана — reel", url: "https://www.instagram.com/reel/Da7zoUupfkt/", icon: "fa6-brands:instagram" },
 		],
-		featured: true,
 	},
 	{
 		title: "Орон сууцны иж бүрэн тавилга",
 		date: "2026.06",
-		category: "interior",
+		sector: "home",
 		subtitle: "Гал тогоо, гардероб, зочны өрөө",
 		description:
 			"Нэг байранд гал тогоо, шилэн хаалгатай гардероб, зочны өрөөний ТВ ханыг нэг өнгөний системд оруулж хийсэн ажил.",
@@ -287,18 +333,17 @@ export const timeline: TimelineItem[] = [
 	{
 		title: "Дугуй бариултай хувцасны шүүгээ",
 		date: "2026.05",
-		category: "wardrobe",
+		sector: "home",
 		subtitle: "Унтлагын өрөө",
 		description: "Таазанд нийлүүлж хийсэн beige шүүгээ, гүн өнгийн нээлттэй тавиур, дугуй бариул.",
 		images: [wardrobeRoundHandles],
 		tags: ["Хувцасны шүүгээ"],
 		links: [{ label: "Instagram дээр үзэх", url: "https://www.instagram.com/reel/DYR-YDhpBIk/", icon: "fa6-brands:instagram" }],
-		icon: "material-symbols:shelves-rounded",
 	},
 	{
 		title: "Олон үйлдэлт зочны өрөө",
 		date: "2026.02",
-		category: "interior",
+		sector: "home",
 		subtitle: "Орон сууцны иж бүрэн тавилга",
 		description:
 			"Нэг өрөөнд унтах, ажиллах, хувцас хадгалах хэсгийг багтааж хийсэн ажил. Орны хэсгийг LED шугамтай рейк хаалтаар тусгаарлаж, цайвар саарал фасадыг бараан саарал элементүүдтэй хослуулсан.",
@@ -310,12 +355,11 @@ export const timeline: TimelineItem[] = [
 			"Цонхны тавцан, радиаторын хаалт, шургуулга",
 		],
 		tags: ["Матт фасад", "LED гэрэлтүүлэг", "Шилэн витрин", "Рейк хаалт"],
-		icon: "material-symbols:weekend-rounded",
 	},
 	{
 		title: "Бараан чулуун хээтэй гал тогоо",
 		date: "2026.02",
-		category: "kitchen",
+		sector: "home",
 		subtitle: "Орон сууцны гал тогоо",
 		description:
 			"Гэрээ бүрэн шинэчилсэн айлын гал тогоо. Цагаан матт фасадыг бараан чулуун хээтэй тавцан, ар ханатай хослуулж, тавцангийн төгсгөлийг дугуйруулж хийсэн.",
@@ -332,7 +376,7 @@ export const timeline: TimelineItem[] = [
 	{
 		title: "Minister Tower — орон сууцны иж бүрэн тавилга",
 		date: "2025.12",
-		category: "interior",
+		sector: "home",
 		subtitle: "Гал тогоо, зочны өрөө, хувцасны шүүгээ",
 		description:
 			"Дугуйрсан хийцлэл нь орон зайг илүү уужим, аюулгүй, орчин үеийн харагдуулдаг. Anti-fingerprint технологитой тавилгын нүүр нь хурууны хээ, толбыг бага татаж, өдөр тутмын арчилгааг илүү хялбар болгоно.",
@@ -351,12 +395,11 @@ export const timeline: TimelineItem[] = [
 				icon: "fa6-brands:facebook",
 			},
 		],
-		featured: true,
 	},
 	{
 		title: "Sista USA shop — дэлгүүрийн тавилга",
 		date: "2025.06",
-		category: "commercial",
+		sector: "service",
 		subtitle: "Худалдааны төвийн дэлгүүр",
 		description:
 			"Rose gold металл хүрээтэй LED тавиур, хувцасны өлгүүр, нуман оройтой шилэн витрин, шилэн тавцантай лангууг нэг хэв маягаар хийж эзэндээ хүлээлгэн өглөө.",
