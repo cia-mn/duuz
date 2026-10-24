@@ -94,10 +94,11 @@ const contactAlt = works.find((w) => w.image === site.contactPhoto)?.title ?? si
 	<!-- Contact: one photo, the free measurement up front, one call to action. -->
 	<section id="contact" class="mx-auto mt-24 max-w-screen-lg px-4 md:mt-32 md:px-8">
 		<div class="grid overflow-hidden rounded-2xl border border-rule bg-paper-2 md:grid-cols-[1fr_1.1fr]">
+			{/* Cover fills the tall card by height, so a 3:2 photo shows ~52rem of width. */}
 			<Image
 				src={site.contactPhoto}
-				widths={[480, 720, 960]}
-				sizes="(max-width: 767px) 100vw, 30rem"
+				widths={[480, 720, 960, 1440, 2048]}
+				sizes="(max-width: 767px) 100vw, 52rem"
 				alt={contactAlt}
 				loading="lazy"
 				class="photo aspect-[4/3] size-full object-cover md:aspect-auto"

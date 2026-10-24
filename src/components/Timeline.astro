@@ -5,6 +5,7 @@
  * accordion — opening one closes the rest — so it needs no script, and the
  * photos of a closed job don't load.
  */
+import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import type { Sector, TimelineItem, Work } from "../content";
@@ -21,6 +22,16 @@ interface Props {
 }
 
 const { items, sectors, id = "jobs", works = [] } = Astro.props;
+
+// A shot's box is at most 19rem × 22rem (about 45vw × 14rem on phones), and
+// cover fills it by height once the photo is wider than the box — a landscape
+// kitchen then shows ~29rem of photo in a 19rem box. Ask for that width, or the
+// browser picks a file half the size it needs.
+const shotSizes = ({ width, height }: ImageMetadata) => {
+	const r = width / height;
+	const phone = r > 0.75 ? `${(14 * r).toFixed(1)}rem` : "45vw";
+	return `(max-width: 639px) ${phone}, ${Math.max(19, 22 * r).toFixed(1)}rem`;
+};
 const bySector = new Map(sectors.map((s) => [s.key, s.label]));
 
 // Each job's photos open in a lightbox of their own, so a job reads as one set.
@@ -67,7 +78,7 @@ const sets = await Promise.all(
 											<Image
 												src={img}
 												widths={[...[240, 480, 720].filter((w) => w < img.width), Math.min(img.width, 960)]}
-												sizes="(max-width: 640px) 45vw, 15rem"
+												sizes={shotSizes(img)}
 												alt={`${item.title} — ${n + 1}`}
 												loading="lazy"
 												class="photo"
